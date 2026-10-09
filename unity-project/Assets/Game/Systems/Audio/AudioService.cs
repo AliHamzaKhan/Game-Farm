@@ -10,31 +10,31 @@ namespace FarmQuest.Systems.Audio
     public class AudioService : MonoBehaviour
     {
         [Header("Assign in inspector (Phase 1 set)")]
-        public AudioClip buttonSound;
-        public AudioClip harvestSound;
-        public AudioClip coinSound;
-        public AudioClip levelUpSound;
-        public AudioClip plantSound;
-        public AudioClip waterSound;
+        public UnityEngine.AudioClip buttonSound;
+        public UnityEngine.AudioClip harvestSound;
+        public UnityEngine.AudioClip coinSound;
+        public UnityEngine.AudioClip levelUpSound;
+        public UnityEngine.AudioClip plantSound;
+        public UnityEngine.AudioClip waterSound;
 
         [Range(0f, 1f)] public float sfxVolume = 0.8f;
         [Range(0f, 1f)] public float musicVolume = 0.5f;
 
-        private AudioSource _sfxSource;
-        private AudioSource _musicSource;
-        private readonly Dictionary<string, AudioClip> _clips = new Dictionary<string, AudioClip>();
+        private UnityEngine.AudioSource _sfxSource;
+        private UnityEngine.AudioSource _musicSource;
+        private readonly Dictionary<string, UnityEngine.AudioClip> _clips = new Dictionary<string, UnityEngine.AudioClip>();
 
         private void Awake()
         {
-            _sfxSource = gameObject.AddComponent<AudioSource>();
-            _musicSource = gameObject.AddComponent<AudioSource>();
+            _sfxSource = gameObject.AddComponent<UnityEngine.AudioSource>();
+            _musicSource = gameObject.AddComponent<UnityEngine.AudioSource>();
             _musicSource.loop = true;
             Register("button", buttonSound); Register("harvest", harvestSound);
             Register("coin", coinSound); Register("levelup", levelUpSound);
             Register("plant", plantSound); Register("water", waterSound);
         }
 
-        private void Register(string id, AudioClip clip)
+        private void Register(string id, UnityEngine.AudioClip clip)
         {
             if (clip != null) _clips[id] = clip;
         }
@@ -45,7 +45,7 @@ namespace FarmQuest.Systems.Audio
                 _sfxSource.PlayOneShot(clip, sfxVolume);
         }
 
-        public void PlayMusic(AudioClip track)
+        public void PlayMusic(UnityEngine.AudioClip track)
         {
             if (track == null || _musicSource.clip == track) return;
             _musicSource.clip = track;

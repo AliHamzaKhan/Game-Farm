@@ -35,8 +35,8 @@ namespace FarmQuest.Data
         public Sprite icon;
         [Tooltip("One prefab per growth stage (index 0 = seed).")]
         public GameObject[] stagePrefabs = new GameObject[0];
-        public AudioClip plantSound;
-        public AudioClip harvestSound;
+        public UnityEngine.AudioClip plantSound;
+        public UnityEngine.AudioClip harvestSound;
 
         private void OnValidate()
         {

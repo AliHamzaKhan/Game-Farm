@@ -30,6 +30,6 @@ namespace FarmQuest.Systems.Animals
         [Header("Presentation")]
         public Sprite icon;
         public GameObject prefab;
-        public AudioClip productSound;
+        public UnityEngine.AudioClip productSound;
     }
 }

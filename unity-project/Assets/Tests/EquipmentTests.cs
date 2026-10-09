@@ -59,6 +59,7 @@ namespace FarmQuest.Tests
             ServiceLocator.Register(economy);
             ServiceLocator.Register(progression);
             _equipment = new EquipmentService(db);
+            ServiceLocator.Register(db);
             ServiceLocator.Register(_equipment);
         }
 

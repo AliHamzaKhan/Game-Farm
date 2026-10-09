@@ -18,7 +18,9 @@ namespace FarmQuest.Tests
             GetElapsedSeconds(new DateTime(fromTicksUtc, DateTimeKind.Utc));
 
         public event Action SecondTick;
+        public event Action DayChanged;
         public void RaiseTick() => SecondTick?.Invoke();
+        public void RaiseDayChanged() => DayChanged?.Invoke();
         public void AdvanceSeconds(double seconds) => Now = Now.AddSeconds(seconds);
     }
 }

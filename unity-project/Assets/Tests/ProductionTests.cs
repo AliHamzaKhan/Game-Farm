@@ -70,6 +70,7 @@ namespace FarmQuest.Tests
             ServiceLocator.Register(_inventory);
 
             _production = new ProductionService(machineDb, _time);
+            ServiceLocator.Register(machineDb);
             ServiceLocator.Register(_production);
         }
 

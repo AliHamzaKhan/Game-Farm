@@ -5,7 +5,7 @@ using FarmQuest.Systems.Economy;
 
 namespace FarmQuest.Systems.Machines
 {
-    public enum TractorMode { Plow, Plant, Fertilize, Harvest }
+    public enum TractorMode { Plow, Plant, Water, Fertilize, Harvest }
 
     /// <summary>
     /// LOGIC: equipment ownership (§23). Tractors define work radius/speed;

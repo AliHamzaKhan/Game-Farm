@@ -46,6 +46,9 @@ namespace FarmQuest.Systems.Machines
                         case TractorMode.Plant:
                             if (tile.CanPlant() && _farm.TryPlant(tile, seedCropId)) result.planted++;
                             break;
+                        case TractorMode.Water:
+                            if (tile.CanWater() && _farm.TryWater(tile)) result.watered++;
+                            break;
                         case TractorMode.Fertilize:
                             if (_farm.TryApplyNutrient(tile)) result.fertilized++;
                             break;

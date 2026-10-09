@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffa825c7619566c40a68d1b491025509, type: 3}
+  m_Name: GameEvent_winter_market
+  m_EditorClassIdentifier: 
+  eventId: winter_market
+  displayName: Winter Market
+  month: 12
+  startDay: 18
+  endDay: 25
+  description: Holiday shoppers pay top coin!
+  sellPriceBonus: 1.25
+  xpMultiplier: 1

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e1ba5f132b1b0c4391aaebc8e74b135, type: 3}
+  m_Name: Building_barn
+  m_EditorClassIdentifier: 
+  buildingId: barn
+  displayName: Barn
+  levels:
+  - levelName: Small Barn
+    cost: 2000
+    description: +4 barn & pasture slots.
+  - levelName: Big Barn
+    cost: 6000
+    description: +4 barn & pasture slots.
+  - levelName: Grand Barn
+    cost: 15000
+    description: +4 barn & pasture slots.

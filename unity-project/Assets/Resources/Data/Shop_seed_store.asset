@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6e03597a7fc4e0459120020062dd951, type: 3}
+  m_Name: Shop_seed_store
+  m_EditorClassIdentifier: 
+  shopId: seed_store
+  displayName: Rafiq's Seed Store
+  shopkeeperName: Rafiq
+  openHour: 9
+  closeHour: 18
+  items:
+  - itemId: seed_carrot
+    priceOverride: -1
+  - itemId: seed_lettuce
+    priceOverride: -1
+  - itemId: seed_tomato
+    priceOverride: -1
+  - itemId: seed_onion
+    priceOverride: -1
+  - itemId: seed_peas
+    priceOverride: -1
+  - itemId: seed_potato
+    priceOverride: -1
+  - itemId: seed_corn
+    priceOverride: -1
+  - itemId: seed_pumpkin
+    priceOverride: -1
+  - itemId: seed_strawberry
+    priceOverride: -1
+  - itemId: seed_watermelon
+    priceOverride: -1
+  - itemId: seed_apple
+    priceOverride: -1
+  - itemId: seed_orange
+    priceOverride: -1
+  - itemId: seed_wheat
+    priceOverride: -1
+  - itemId: seed_sunflower
+    priceOverride: -1
+  - itemId: seed_mango
+    priceOverride: -1
+  - itemId: seed_peach
+    priceOverride: -1
+  - itemId: feed
+    priceOverride: -1
+  - itemId: fertilizer
+    priceOverride: -1
+  - itemId: compost
+    priceOverride: -1

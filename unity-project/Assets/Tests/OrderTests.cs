@@ -7,6 +7,7 @@ using FarmQuest.Systems.Inventory;
 using FarmQuest.Systems.Orders;
 using NUnit.Framework;
 using UnityEngine;
+using System.Linq;
 
 namespace FarmQuest.Tests
 {
@@ -80,7 +81,7 @@ namespace FarmQuest.Tests
                 _inventory.Add(item.itemId, 99);
 
             int countBefore = _orders.Orders.Count;
-            int coinsBefore = _economy.Coins;
+            long coinsBefore = _economy.Coins;
             Assert.IsTrue(_orders.CanFulfill(order));
             Assert.IsTrue(_orders.Fulfill(order));
             Assert.AreEqual(countBefore - 1, _orders.Orders.Count);

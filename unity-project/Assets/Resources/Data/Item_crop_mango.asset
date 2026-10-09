@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c03ef4f92f64c0543ab2c21b430e85db, type: 3}
+  m_Name: Item_crop_mango
+  m_EditorClassIdentifier: 
+  itemId: crop_mango
+  displayName: Mango
+  category: 1
+  icon: {fileID: 0}
+  maxStack: 99
+  buyPrice: 10
+  sellPrice: 40
+  cropId: 

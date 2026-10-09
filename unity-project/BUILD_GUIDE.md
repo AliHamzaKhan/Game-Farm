@@ -19,9 +19,9 @@ How to go from this source to a running game on your devices.
 1. **Generate game data:** menu **FarmQuest → Generate → All Game Data**.
    Creates `Assets/Resources/Data/` (crops, items, animals, machines, events…).
 2. **Create test scenes:** menu **FarmQuest → Setup → Create Test Scenes**.
-   Creates `Assets/Scenes/Bootstrap.unity` + `Assets/Scenes/Farm.unity` and adds
-   both to Build Settings.
-3. Open `Assets/Scenes/Bootstrap.unity` and press **Play**.
+   Creates `Assets/Scenes/Main.unity` (boot + farm in one scene) and adds
+   it to Build Settings.
+3. Open `Assets/Scenes/Main.unity` and press **Play**.
    - You should see a grass field of tiles, a HUD (🪙 coins, level, clock),
      and a farmer. **Tap a tile** → the plot panel opens →
      Clear → Dig → Prepare → Plant → Water → watch it grow → tap to harvest.
@@ -86,7 +86,7 @@ This is a **playable code slice**, not a finished game:
 | Symptom | Fix |
 |---|---|
 | Red error: data assets missing | Run **FarmQuest → Generate → All Game Data** |
-| Black screen on Play | Open the **Bootstrap** scene (not Farm) and Play |
+| Black screen on Play | Open the **Main** scene and press Play |
 | Tiles not tappable | Check `FarmInteractionController.tileLayer` matches the builder's layer (8) |
 | UI buttons don't respond | The scene needs an **EventSystem** (the setup script adds one) |
 | Android build fails on SDK | In Hub, install **Android SDK & NDK Tools** for this Unity version |

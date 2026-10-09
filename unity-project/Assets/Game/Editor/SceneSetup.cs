@@ -14,11 +14,12 @@ using FarmQuest.UI;
 namespace FarmQuest.Editor
 {
     /// <summary>
-    /// One-click test scenes (Phase 6). Run AFTER FarmQuest/Generate/All Game Data.
-    /// Creates:
-    ///   Assets/Scenes/Bootstrap.unity — Bootstrapper (loads data, then the Farm scene)
-    ///   Assets/Scenes/Farm.unity      — camera, input, player, tile grid, HUD, plot panel
-    /// and registers both in Build Settings. The 3D farm + core tap loop
+    /// One-click test scene (Phase 6). Run AFTER FarmQuest/Generate/All Game Data.
+    /// Creates a single scene:
+    ///   Assets/Scenes/Main.unity — Bootstrapper (services + save) plus the farm:
+    ///   camera, input, player, tile grid, HUD, plot panel.
+    /// Single scene on purpose: no cross-scene loading, so it can't break when
+    /// Unity's build-profile scene list drifts. The 3D farm + core tap loop
     /// (clear → dig → prepare → plant → water → harvest) works immediately;
     /// shop/mission/etc. panels are shells for manual UI wiring later.
     /// </summary>
@@ -32,22 +33,19 @@ namespace FarmQuest.Editor
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
-            CreateBootstrapScene();
-            CreateFarmScene();
+            CreateMainScene();
 
             EditorBuildSettings.scenes = new[]
             {
-                new EditorBuildSettingsScene("Assets/Scenes/Bootstrap.unity", true),
-                new EditorBuildSettingsScene("Assets/Scenes/Farm.unity", true),
+                new EditorBuildSettingsScene("Assets/Scenes/Main.unity", true),
             };
-            Debug.Log("[FarmQuest] Test scenes created. Press Play on the Bootstrap scene.");
+            Debug.Log("[FarmQuest] Test scene created. Press Play on the Main scene.");
         }
 
-        // ---------------- Bootstrap ----------------
+        // ---------------- Boot (services + save) ----------------
 
-        private static void CreateBootstrapScene()
+        private static void CreateBootObject()
         {
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var boot = new GameObject("Boot");
             var bootstrapper = boot.AddComponent<Core.Services.Bootstrapper>();
 
@@ -59,13 +57,6 @@ namespace FarmQuest.Editor
             bootstrapper.animalDatabase = Load<Systems.Animals.AnimalDatabase>("AnimalDatabase");
             bootstrapper.machineDatabase = Load<Systems.Machines.MachineDatabase>("MachineDatabase");
             bootstrapper.villageDatabase = Load<Systems.Village.VillageDatabase>("VillageDatabase");
-
-            // After boot, load the farm scene.
-            var loader = boot.AddComponent<Core.Services.BootstrapSceneLoader>();
-            loader.farmSceneName = "Farm";
-
-            EnsureFolder("Assets/Scenes");
-            EditorSceneManager.SaveScene(scene, "Assets/Scenes/Bootstrap.unity");
         }
 
         private static T Load<T>(string name) where T : Object
@@ -76,11 +67,14 @@ namespace FarmQuest.Editor
             return asset;
         }
 
-        // ---------------- Farm ----------------
+        // ---------------- Main ----------------
 
-        private static void CreateFarmScene()
+        private static void CreateMainScene()
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+
+            // Boot: services + save (Awake runs before everything else's Start).
+            CreateBootObject();
 
             // Camera (isometric, follows player).
             var camGo = GameObject.Find("Main Camera");
@@ -150,7 +144,7 @@ namespace FarmQuest.Editor
             interaction.plotPanel = plot;
 
             EnsureFolder("Assets/Scenes");
-            EditorSceneManager.SaveScene(scene, "Assets/Scenes/Farm.unity");
+            EditorSceneManager.SaveScene(scene, "Assets/Scenes/Main.unity");
         }
 
         // ---------------- UI helpers ----------------

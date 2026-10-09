@@ -133,7 +133,7 @@ namespace FarmQuest.Systems.Farming
             if (ServiceLocator.TryGet(out World.SeasonService seasons))
             {
                 var current = seasons.CurrentSeason;
-                if (data.season != Data.Season.None && data.season != current)
+                if (data.preferredSeason != Data.Season.None && data.preferredSeason != current)
                 {
                     crop.GrowthTimeMultiplier = 2f;
                     GameEvents.RaiseToast($"{data.displayName} grows slower out of season 🌱");

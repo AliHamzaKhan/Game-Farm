@@ -15,7 +15,7 @@ namespace FarmQuest.Systems.Village
         private const float DailyInterestRate = 0.02f;
         private const int MaxDailyInterest = 200;
 
-        public int Balance { get; private set; }
+        public long Balance { get; private set; }
 
         public BankService(ITimeService time)
         {
@@ -34,7 +34,7 @@ namespace FarmQuest.Systems.Village
             }
         }
 
-        public bool Deposit(int amount)
+        public bool Deposit(long amount)
         {
             if (amount <= 0) return false;
             var economy = ServiceLocator.Get<EconomyService>();
@@ -48,7 +48,7 @@ namespace FarmQuest.Systems.Village
             return true;
         }
 
-        public bool Withdraw(int amount)
+        public bool Withdraw(long amount)
         {
             if (amount <= 0 || amount > Balance) return false;
             Balance -= amount;

@@ -29,7 +29,7 @@ namespace FarmQuest.Systems.Machines
             // Placeholder body if no art assigned yet.
             if (transform.childCount == 0)
             {
-                var body = GameObject.CreatePrimitive(PrimitiveType.Box);
+                var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 body.transform.SetParent(transform, false);
                 body.transform.localScale = new Vector3(1.6f, 1f, 2.4f);
                 body.transform.localPosition = Vector3.up * 0.5f;

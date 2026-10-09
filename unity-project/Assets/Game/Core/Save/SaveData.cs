@@ -266,7 +266,7 @@ namespace FarmQuest.Core.Save
     [Serializable]
     public class BankSaveData
     {
-        public int balance;
+        public long balance;
     }
 
     [Serializable]

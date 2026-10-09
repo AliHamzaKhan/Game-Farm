@@ -1,5 +1,6 @@
 using FarmQuest.Core.Services;
 using FarmQuest.Data;
+using FarmQuest.Gameplay.Player;
 using FarmQuest.Input;
 using UnityEngine;
 
@@ -37,6 +38,12 @@ namespace FarmQuest.Systems.Farming
         {
             if (farmCamera == null) return;
             var ray = farmCamera.ScreenPointToRay(tap.ScreenPosition);
+            // If an interactable (NPC, tractor, pond...) was tapped, let the
+            // player controller handle it — don't also select the tile behind.
+            if (Physics.Raycast(ray, out var hitAny, 500f))
+            {
+                if (hitAny.collider.GetComponentInParent<IInteractable>() != null) return;
+            }
             if (!Physics.Raycast(ray, out var hit, 500f, tileLayer)) return;
 
             var view = hit.collider.GetComponentInParent<FarmTileView>();

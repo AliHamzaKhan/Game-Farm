@@ -145,6 +145,9 @@ namespace FarmQuest.Editor
             // All game panels + bottom nav (audit fix).
             SceneSetupPanels.BuildAll(canvasGo, hud);
 
+            // Living world: house, tractor, NPCs, pen, orchard, pet, pond, wildlife.
+            SceneSetupWorld.Build();
+
             // Tap-to-tile interaction.
             var interactionGo = new GameObject("FarmInteraction");
             var interaction = interactionGo.AddComponent<FarmInteractionController>();

@@ -28,6 +28,12 @@ namespace FarmQuest.Gameplay.Player
             if (!enabled) _hasMoveTarget = false;
         }
 
+        private void Awake()
+        {
+            // Register early so PetView and others can find the player in their Start().
+            Core.Services.ServiceLocator.Register(this);
+        }
+
         private void Start()
         {
             _input = ServiceLocator.Get<IInputService>();
@@ -54,6 +60,16 @@ namespace FarmQuest.Gameplay.Player
             var cam = _camera != null ? _camera.GetComponent<UnityEngine.Camera>() : UnityEngine.Camera.main;
             if (cam == null) return;
             var ray = cam.ScreenPointToRay(tap.ScreenPosition);
+            // Interactables (NPCs, tractor, pond, pet) take priority over movement.
+            if (Physics.Raycast(ray, out var hitInteract, 500f))
+            {
+                var interactable = hitInteract.collider.GetComponentInParent<IInteractable>();
+                if (interactable != null)
+                {
+                    interactable.Interact();
+                    return;
+                }
+            }
             if (Physics.Raycast(ray, out var hit, 500f, groundLayer))
             {
                 _moveTarget = hit.point;

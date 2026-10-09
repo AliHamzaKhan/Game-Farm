@@ -95,7 +95,6 @@ namespace FarmQuest.Editor
             // Player.
             var player = new GameObject("Player");
             player.transform.position = new Vector3(0f, 0f, 6f);
-            player.AddComponent<CharacterController>();
             var playerCtrl = player.AddComponent<PlayerController>();
             playerCtrl.groundLayer = 1 << TileLayer;
             player.AddComponent<PlayerCustomization>();

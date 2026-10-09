@@ -9,14 +9,12 @@ namespace FarmQuest.Gameplay.Player
     /// The farmer avatar (§5 spec): tap-to-move + WASD, simple and readable.
     /// Interactables are handled by dedicated controllers (e.g. FarmInteractionController).
     /// </summary>
-    [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
     {
         public float moveSpeed = 5f;
         public float turnSpeed = 10f;
         public LayerMask groundLayer;
 
-        private CharacterController _character;
         private IInputService _input;
         private Vector3 _moveTarget;
         private bool _hasMoveTarget;
@@ -28,11 +26,6 @@ namespace FarmQuest.Gameplay.Player
         {
             _controlsEnabled = enabled;
             if (!enabled) _hasMoveTarget = false;
-        }
-
-        private void Awake()
-        {
-            _character = GetComponent<CharacterController>();
         }
 
         private void Start()
@@ -89,7 +82,7 @@ namespace FarmQuest.Gameplay.Player
 
             if (dir.sqrMagnitude > 0.001f)
             {
-                _character.SimpleMove(dir * moveSpeed);
+                transform.position += dir * moveSpeed * Time.deltaTime;
                 Quaternion look = Quaternion.LookRotation(dir);
                 transform.rotation = Quaternion.Slerp(transform.rotation, look, turnSpeed * Time.deltaTime);
             }

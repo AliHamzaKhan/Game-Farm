@@ -10,7 +10,6 @@ namespace FarmQuest.Systems.Machines
     /// vehicle sim). While driving, work is applied to tiles under the tractor
     /// in the current mode's radius. Camera follows; player controls pause.
     /// </summary>
-    [RequireComponent(typeof(CharacterController))]
     public class TractorController : MonoBehaviour
     {
         public float baseSpeed = 6f;
@@ -20,16 +19,13 @@ namespace FarmQuest.Systems.Machines
         public TractorMode Mode { get; private set; } = TractorMode.Plow;
         public string SelectedSeedCropId { get; set; } = "carrot";
 
-        private CharacterController _character;
         private IInputService _input;
-        private FarmServiceBridge _bridge;
         private Vector3 _moveTarget;
         private bool _hasTarget;
         private Vector2Int _lastCell = new Vector2Int(int.MinValue, int.MinValue);
 
         private void Awake()
         {
-            _character = GetComponent<CharacterController>();
             // Placeholder body if no art assigned yet.
             if (transform.childCount == 0)
             {
@@ -137,7 +133,7 @@ namespace FarmQuest.Systems.Machines
 
             if (dir.sqrMagnitude > 0.001f)
             {
-                _character.SimpleMove(dir * speed);
+                transform.position += dir * speed * Time.deltaTime;
                 transform.rotation = Quaternion.Slerp(transform.rotation,
                     Quaternion.LookRotation(dir), 6f * Time.deltaTime);
             }

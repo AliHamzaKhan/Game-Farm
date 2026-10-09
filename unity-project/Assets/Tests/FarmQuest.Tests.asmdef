@@ -1,0 +1,1 @@
+{"allowUnsafeCode":false,"autoReferenced":true,"defineConstraints":[],"excludePlatforms":[],"includePlatforms":["Editor"],"name":"FarmQuest.Tests","noEngineReferences":false,"optionalUnityReferences":["TestAssemblies"],"overrideReferences":false,"precompiledReferences":[],"references":["FarmQuest.Runtime"],"rootNamespace":"FarmQuest.Tests","versionDefines":[]}

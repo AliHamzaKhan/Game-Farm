@@ -84,7 +84,7 @@ namespace FarmQuest.Editor
 
             // Camera (isometric, follows player).
             var camGo = GameObject.Find("Main Camera");
-            var cam = camGo.GetComponent<Camera>();
+            var cam = camGo.GetComponent<UnityEngine.Camera>();
             camGo.transform.position = new Vector3(0f, 18f, -10f);
             var camCtrl = camGo.AddComponent<Camera.FarmCameraController>();
 

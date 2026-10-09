@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93e9797251e080f44a2a9c2b2ee8d7a6, type: 3}
-  m_Name: Decor_flower_bed
+  m_Name: 
   m_EditorClassIdentifier: 
   decorId: flower_bed
   displayName: Flower Bed

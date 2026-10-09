@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8363f157a2c148643be69af7ad755b05, type: 3}
-  m_Name: Equipment_seeder
+  m_Name: 
   m_EditorClassIdentifier: 
   equipmentId: seeder
   displayName: Seeder

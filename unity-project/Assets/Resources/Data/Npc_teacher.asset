@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31bb1189b57c12e4ab180653e83cae2f, type: 3}
-  m_Name: Npc_teacher
+  m_Name: 
   m_EditorClassIdentifier: 
   npcId: teacher
   displayName: Ms. Sana

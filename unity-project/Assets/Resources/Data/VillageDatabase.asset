@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3dc0b4bf0ec47674c826093ff0d4d31f, type: 3}
-  m_Name: VillageDatabase
+  m_Name: 
   m_EditorClassIdentifier: 
   shops:
-  - {fileID: 11400000, guid: 511fe1a13e23df445b7006eab2218006, type: 2}
-  - {fileID: 11400000, guid: 2501da31c9d6eda459de0af08ca7e297, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}

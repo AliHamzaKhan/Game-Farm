@@ -163,7 +163,7 @@ namespace FarmQuest.Editor
             text.fontSize = fontSize;
             text.alignment = anchor;
             text.color = Color.white;
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             return text;
         }
 
@@ -188,7 +188,7 @@ namespace FarmQuest.Editor
             text.fontSize = 36;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             return button;
         }
 

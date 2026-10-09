@@ -33,6 +33,11 @@ namespace FarmQuest.Editor
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
+            // Bootstrapper must Awake before any other script's Start.
+            var bootImporter = AssetImporter.GetAtPath(
+                "Assets/Game/Core/Services/Bootstrapper.cs") as MonoImporter;
+            if (bootImporter != null) bootImporter.SetExecutionOrder(-100);
+
             CreateMainScene();
 
             EditorBuildSettings.scenes = new[]
@@ -136,6 +141,9 @@ namespace FarmQuest.Editor
             plot.harvestButton = MakeButton(plotGo.transform, "Harvest", "Harvest 🧺", 8);
             plot.closeButton = MakeButton(plotGo.transform, "Close", "Close ✖️", 9);
             plotGo.SetActive(false);
+
+            // All game panels + bottom nav (audit fix).
+            SceneSetupPanels.BuildAll(canvasGo, hud);
 
             // Tap-to-tile interaction.
             var interactionGo = new GameObject("FarmInteraction");

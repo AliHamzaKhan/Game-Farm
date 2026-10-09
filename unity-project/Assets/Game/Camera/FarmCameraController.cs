@@ -27,6 +27,9 @@ namespace FarmQuest.Camera
         private Vector3 _targetPos;
         private float _targetZoom;
         private Vector3 _velocity;
+        // Height/angle offset kept while following (so the camera never
+        // descends to the target's ground-level position).
+        private Vector3 _followOffset;
 
         private void Awake()
         {
@@ -44,6 +47,8 @@ namespace FarmQuest.Camera
             _input = ServiceLocator.Get<IInputService>();
             _input.Dragged += OnDragged;
             _input.Pinched += OnPinched;
+            if (followTarget != null)
+                _followOffset = transform.position - followTarget.position;
         }
 
         private void OnDestroy()
@@ -79,7 +84,7 @@ namespace FarmQuest.Camera
 
             if (followTarget != null)
             {
-                _targetPos = followTarget.position;
+                _targetPos = followTarget.position + _followOffset;
                 ClampTarget();
             }
 
@@ -100,6 +105,11 @@ namespace FarmQuest.Camera
             ClampTarget();
         }
 
-        public void Follow(Transform target) => followTarget = target;
+        public void Follow(Transform target)
+        {
+            followTarget = target;
+            if (target != null)
+                _followOffset = transform.position - target.position;
+        }
     }
 }

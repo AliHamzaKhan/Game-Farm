@@ -96,7 +96,15 @@ namespace FarmQuest.Editor
             player.transform.position = new Vector3(0f, 0f, 6f);
             var playerCtrl = player.AddComponent<PlayerController>();
             playerCtrl.groundLayer = 1 << TileLayer;
-            player.AddComponent<PlayerCustomization>();
+            var customization = player.AddComponent<PlayerCustomization>();
+            // Placeholder farmer body so the player is visible. No collider:
+            // taps must reach the tiles underneath.
+            var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.name = "Body";
+            Object.DestroyImmediate(body.GetComponent<Collider>());
+            body.transform.SetParent(player.transform, false);
+            body.transform.localPosition = new Vector3(0f, 1f, 0f);
+            customization.bodyRenderer = body.GetComponent<Renderer>();
             camCtrl.Follow(player.transform);
 
             // Tile grid.

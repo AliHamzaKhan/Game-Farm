@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace FarmQuest.Input
 {
@@ -38,6 +39,13 @@ namespace FarmQuest.Input
             switch (touch.phase)
             {
                 case TouchPhase.Began:
+                    // Touches that start on UI must not also tap/drag the world.
+                    if (EventSystem.current != null &&
+                        EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                    {
+                        _trackedFinger = -1;
+                        break;
+                    }
                     _trackedFinger = touch.fingerId;
                     _downPos = touch.position;
                     _downTime = Time.time;

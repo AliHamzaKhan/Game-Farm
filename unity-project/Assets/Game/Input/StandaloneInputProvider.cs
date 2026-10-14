@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace FarmQuest.Input
 {
@@ -29,7 +30,8 @@ namespace FarmQuest.Input
             if (UnityEngine.Input.GetKey(KeyCode.LeftControl) && Mathf.Abs(ScrollDelta) > 0.01f)
                 Pinched?.Invoke(1f + ScrollDelta * 0.05f);
 
-            if (UnityEngine.Input.GetMouseButtonDown(0))
+            // Clicks on UI buttons/panels must not also tap the world behind them.
+            if (UnityEngine.Input.GetMouseButtonDown(0) && !IsPointerOverUi())
             {
                 _mouseDown = true;
                 _downPos = UnityEngine.Input.mousePosition;
@@ -52,5 +54,8 @@ namespace FarmQuest.Input
                     Dragged?.Invoke(delta);
             }
         }
+
+        private static bool IsPointerOverUi() =>
+            EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 }

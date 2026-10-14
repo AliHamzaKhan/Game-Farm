@@ -83,8 +83,9 @@ namespace FarmQuest.Systems.Animals
         {
             get
             {
-                if (ProductsReady > 0) return AnimalState.Ready;
+                // Hunger first: otherwise ready products would hide the feed cue.
                 if (IsHungry) return AnimalState.Hungry;
+                if (ProductsReady > 0) return AnimalState.Ready;
                 if (Happiness >= 70f) return AnimalState.Happy;
                 return AnimalState.Producing;
             }

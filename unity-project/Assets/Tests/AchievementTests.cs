@@ -66,7 +66,9 @@ namespace FarmQuest.Tests
 
             Assert.AreEqual("first_harvest", unlocked);
             Assert.IsTrue(_achievements.IsUnlocked("first_harvest"));
-            Assert.AreEqual(100, _economy.Coins); // reward granted
+            // 100 reward, which itself counts as coins earned and unlocks rich_100 (+50).
+            Assert.AreEqual(150, _economy.Coins);
+            Assert.IsTrue(_achievements.IsUnlocked("rich_100"));
         }
 
         [Test]

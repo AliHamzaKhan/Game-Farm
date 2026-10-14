@@ -46,6 +46,7 @@ namespace FarmQuest.Tests
                 MakeItem("flour", ItemCategory.Food, 25),
             };
             cropDb.Initialize();
+            ServiceLocator.Register(cropDb);
 
             var prog = ScriptableObject.CreateInstance<ProgressionData>();
             prog.levels.Add(new LevelEntry { level = 1, title = "N", xpRequiredCumulative = 0 });

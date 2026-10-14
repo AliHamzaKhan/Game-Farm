@@ -73,9 +73,10 @@ namespace FarmQuest.Tests
         {
             var chicken = NewChicken();
             _time.AdvanceSeconds(7201);
+            float before = chicken.Happiness;
             chicken.Feed();
             Assert.IsFalse(chicken.IsHungry);
-            Assert.Greater(chicken.Happiness, 60f);
+            Assert.Greater(chicken.Happiness, before);
         }
 
         [Test]

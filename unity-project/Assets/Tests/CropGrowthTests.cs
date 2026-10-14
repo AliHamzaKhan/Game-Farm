@@ -102,7 +102,9 @@ namespace FarmQuest.Tests
         {
             var growth = new CropGrowthService(_time);
             var tile = new FarmTile(new Vector2Int(0, 0), 0, true);
+            tile.Clear(); tile.Dig(); tile.Prepare();
             var crop = PlantAt(_time.Now);
+            tile.Plant(crop);
             int notifications = 0;
             GameEvents.CropReady += c => { if (c == crop) notifications++; };
 

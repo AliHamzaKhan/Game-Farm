@@ -38,13 +38,16 @@ namespace FarmQuest.Editor
                 "Assets/Game/Core/Services/Bootstrapper.cs") as MonoImporter;
             if (bootImporter != null) MonoImporter.SetExecutionOrder(bootImporter.GetScript(), -100);
 
-            CreateMainScene();
+            if (!CreateMainScene()) return;
 
             EditorBuildSettings.scenes = new[]
             {
-                new EditorBuildSettingsScene("Assets/Scenes/Main.unity", true),
+                new EditorBuildSettingsScene(MainScenePath, true),
             };
-            Debug.Log("[FarmQuest] Test scene created. Press Play on the Main scene.");
+            Debug.Log($"[FarmQuest] Test scene saved to {MainScenePath}. Press Play on the Main scene.");
+            // Highlight the new scene in the Project window.
+            var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(MainScenePath);
+            if (sceneAsset != null) EditorGUIUtility.PingObject(sceneAsset);
         }
 
         // ---------------- Boot (services + save) ----------------
@@ -74,7 +77,10 @@ namespace FarmQuest.Editor
 
         // ---------------- Main ----------------
 
-        private static void CreateMainScene()
+        private const string MainScenePath = "Assets/Scenes/Main.unity";
+
+        /// <summary>Builds and saves Main.unity. Returns false if the save failed.</summary>
+        private static bool CreateMainScene()
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
@@ -163,7 +169,13 @@ namespace FarmQuest.Editor
             interaction.plotPanel = plot;
 
             EnsureFolder("Assets/Scenes");
-            EditorSceneManager.SaveScene(scene, "Assets/Scenes/Main.unity");
+            if (!EditorSceneManager.SaveScene(scene, MainScenePath))
+            {
+                Debug.LogError($"[FarmQuest] Could not save {MainScenePath}. Check the folder is writable, then run Create Test Scenes again.");
+                return false;
+            }
+            AssetDatabase.Refresh();
+            return true;
         }
 
         // ---------------- UI helpers ----------------

@@ -43,7 +43,7 @@ namespace FarmQuest.Editor
             var seedShop = CreatePanel(canvas, "SeedShopPanel", "🌱 Seed Shop", out _);
             var seedCtrl = seedShop.AddComponent<SeedShopPanelController>();
             seedCtrl.listContent = CreateScrollContent(seedShop.transform);
-            seedCtrl.seedButtonPrefab = seedButtonPrefab;
+            seedCtrl.seedButtonPrefab = seedButtonPrefab.GetComponent<Button>();
             seedCtrl.closeButton = AddCloseButton(seedShop.transform);
             hud.seedShopPanel = seedShop;
 

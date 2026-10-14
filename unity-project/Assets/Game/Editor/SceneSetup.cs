@@ -36,7 +36,7 @@ namespace FarmQuest.Editor
             // Bootstrapper must Awake before any other script's Start.
             var bootImporter = AssetImporter.GetAtPath(
                 "Assets/Game/Core/Services/Bootstrapper.cs") as MonoImporter;
-            if (bootImporter != null) bootImporter.SetExecutionOrder(-100);
+            if (bootImporter != null) MonoImporter.SetExecutionOrder(bootImporter.GetScript(), -100);
 
             CreateMainScene();
 

@@ -31,7 +31,12 @@ namespace FarmQuest.Editor
         [MenuItem("FarmQuest/Setup/Create Test Scenes")]
         public static void CreateTestScenes()
         {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            Debug.Log("[FarmQuest] Create Test Scenes started.");
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                Debug.LogWarning("[FarmQuest] Cancelled: the save-current-scene dialog was cancelled. Run Create Test Scenes again and pick Save or Don't Save.");
+                return;
+            }
 
             // Bootstrapper must Awake before any other script's Start.
             var bootImporter = AssetImporter.GetAtPath(

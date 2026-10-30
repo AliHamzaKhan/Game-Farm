@@ -38,10 +38,8 @@ namespace FarmQuest.Editor
                 return;
             }
 
-            // Bootstrapper must Awake before any other script's Start.
-            var bootImporter = AssetImporter.GetAtPath(
-                "Assets/Game/Core/Services/Bootstrapper.cs") as MonoImporter;
-            if (bootImporter != null) MonoImporter.SetExecutionOrder(bootImporter.GetScript(), -100);
+            // Bootstrapper runs first via [DefaultExecutionOrder(-100)]; setting it here
+            // rewrote its .meta, forcing a reimport + domain reload on every run.
 
             if (!CreateMainScene()) return;
 

@@ -34,6 +34,7 @@ namespace FarmQuest.Core.Services
     /// the bootstrap scene. Runs before any gameplay scene logic.
     /// Order follows spec §59.
     /// </summary>
+    [DefaultExecutionOrder(-100)]
     public class Bootstrapper : MonoBehaviour
     {
         [Header("Assign data assets (or generate via FarmQuest/Generate/All Game Data)")]

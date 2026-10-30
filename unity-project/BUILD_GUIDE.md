@@ -16,6 +16,10 @@ How to go from this source to a running game on your devices.
 
 ## 2. One-time setup inside Unity
 
+> **Automatic:** `Main.unity` is generated, not stored in git. When the editor
+> opens and it's missing, the project generates the data and the scene for you
+> and opens it. The steps below are the manual way (also use them to rebuild).
+
 1. **Generate game data:** menu **FarmQuest → Generate → All Game Data**.
    Creates `Assets/Resources/Data/` (crops, items, animals, machines, events…).
 2. **Create test scenes:** menu **FarmQuest → Setup → Create Test Scenes**.
@@ -86,7 +90,8 @@ This is a **playable code slice**, not a finished game:
 | Symptom | Fix |
 |---|---|
 | Red error: data assets missing | Run **FarmQuest → Generate → All Game Data** |
-| Black screen on Play | Open the **Main** scene and press Play |
+| Black screen on Play | **FarmQuest → Setup → Open Main Scene**, then press Play |
+| No `Main.unity` in `Assets/Scenes` | Run **FarmQuest → Setup → Create Test Scenes** (check the Console for errors) |
 | Tiles not tappable | Check `FarmInteractionController.tileLayer` matches the builder's layer (8) |
 | UI buttons don't respond | The scene needs an **EventSystem** (the setup script adds one) |
 | Android build fails on SDK | In Hub, install **Android SDK & NDK Tools** for this Unity version |

@@ -76,7 +76,7 @@ namespace FarmQuest.Systems.Economy
         public bool BuySeed(string cropId, int quantity)
         {
             var crop = _database.GetCrop(cropId);
-            if (crop == null || quantity <= 0) return false;
+            if (crop == null || crop.isPremium || quantity <= 0) return false; // premium seeds: Store (gems)
             var economy = ServiceLocator.Get<EconomyService>();
             int total = crop.seedPrice * quantity;
             if (!economy.TrySpend(total))

@@ -66,6 +66,13 @@ namespace FarmQuest.Core.Services
         public static event Action<string> CropCared;              // care action id (spray, prune, ...)
         public static event Action FarmUpgradesChanged;
 
+        // ---- Free-to-play economy ----
+        public static event Action<long> GemsChanged;
+        public static event Action<long> OrderFulfilled;           // coins paid
+        public static event Action<string, long> MissionRewarded;  // missionId, coins paid
+        public static event Action<string> SupplyMissing;          // itemId the player tried to use
+        public static event Action StoreChanged;                   // purchases, daily rewards, challenges
+
         public static void RaiseCoinsChanged(long coins) => CoinsChanged?.Invoke(coins);
         public static void RaiseLevelChanged(int level, int xpIntoLevel) => LevelChanged?.Invoke(level, xpIntoLevel);
         public static void RaiseLevelUp(int newLevel) => LevelUp?.Invoke(newLevel);
@@ -109,6 +116,11 @@ namespace FarmQuest.Core.Services
         public static void RaiseSaleCompleted(string itemId, int quantity, long coins) => SaleCompleted?.Invoke(itemId, quantity, coins);
         public static void RaiseCropCared(string action) => CropCared?.Invoke(action);
         public static void RaiseFarmUpgradesChanged() => FarmUpgradesChanged?.Invoke();
+        public static void RaiseGemsChanged(long gems) => GemsChanged?.Invoke(gems);
+        public static void RaiseOrderFulfilled(long coins) => OrderFulfilled?.Invoke(coins);
+        public static void RaiseMissionRewarded(string missionId, long coins) => MissionRewarded?.Invoke(missionId, coins);
+        public static void RaiseSupplyMissing(string itemId) => SupplyMissing?.Invoke(itemId);
+        public static void RaiseStoreChanged() => StoreChanged?.Invoke();
 
         public static void Reset()
         {
@@ -155,6 +167,11 @@ namespace FarmQuest.Core.Services
             SaleCompleted = null;
             CropCared = null;
             FarmUpgradesChanged = null;
+            GemsChanged = null;
+            OrderFulfilled = null;
+            MissionRewarded = null;
+            SupplyMissing = null;
+            StoreChanged = null;
         }
     }
 }

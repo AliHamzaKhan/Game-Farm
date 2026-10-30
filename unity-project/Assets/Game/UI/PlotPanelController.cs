@@ -31,6 +31,11 @@ namespace FarmQuest.UI
         public Button sprayButton;
         public Button pruneButton;
         public Button harvestButton;
+        [Header("Consumables (shown only when owned)")]
+        public Button premiumFertilizerButton;
+        public Button liquidNutrientButton;
+        public Button growthBoosterButton;
+        public Button superCompostButton;
         [Header("Optional rewarded ads")]
         public Text adOfferText;
         public Button adSpeedupButton;
@@ -115,7 +120,22 @@ namespace FarmQuest.UI
                     GameEvents.RaiseToast($"+{result.quantity} {crop.Data.displayName} ({result.quality})!");
             });
 
+            RefreshConsumable(premiumFertilizerButton, crop, "premium_fertilizer", care);
+            RefreshConsumable(liquidNutrientButton, crop, "liquid_nutrient", care);
+            RefreshConsumable(growthBoosterButton, crop, "growth_booster", care);
+            RefreshConsumable(superCompostButton, crop, "super_compost", care);
+
             RefreshAds(crop);
+        }
+
+        private void RefreshConsumable(Button button, CropInstance crop, string itemId, CropCareService care)
+        {
+            if (button == null) return;
+            var item = ServiceLocator.Get<CropDatabase>().GetItem(itemId);
+            int owned = ServiceLocator.Get<Systems.Inventory.InventoryService>().GetCount(itemId);
+            bool show = _tile.HasCrop && owned > 0 && CropCareService.CanUse(crop, item);
+            Set(button, show, () => care.TryUseConsumable(_tile, itemId));
+            if (show) SetLabel(button, $"{item.displayName} ({owned})");
         }
 
         private void RefreshAds(CropInstance crop)

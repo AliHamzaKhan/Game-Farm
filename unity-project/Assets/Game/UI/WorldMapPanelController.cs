@@ -195,51 +195,9 @@ namespace FarmQuest.UI
             if (headerText != null) headerText.text = text;
         }
 
-        private void ClearList()
-        {
-            if (listContent == null) return;
-            foreach (Transform child in listContent) Destroy(child.gameObject);
-        }
+        private void ClearList() => RowList.Clear(listContent);
 
-        private void AddRow(string name, string price, string buttonLabel, UnityEngine.Events.UnityAction action)
-        {
-            if (rowPrefab == null || listContent == null) return;
-            var row = Instantiate(rowPrefab, listContent);
-            SetText(row.transform, "Name", name);
-            SetText(row.transform, "Price", price);
-            var buttonT = FindChild(row.transform, "Button");
-            var button = buttonT != null ? buttonT.GetComponent<Button>() : null;
-            if (button == null) return;
-            bool show = action != null;
-            button.gameObject.SetActive(show);
-            if (!show) return;
-            var label = button.GetComponentInChildren<Text>();
-            if (label != null) label.text = buttonLabel;
-            button.onClick.AddListener(action);
-        }
-
-        private static void SetText(Transform row, string child, string value)
-        {
-            var t = FindChild(row, child);
-            var text = t != null ? t.GetComponent<Text>() : null;
-            if (text == null) return;
-            text.supportRichText = true;
-            // Long labels shrink to fit instead of being cut off.
-            text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = 18;
-            text.resizeTextMaxSize = 36;
-            text.text = value;
-        }
-
-        private static Transform FindChild(Transform parent, string name)
-        {
-            foreach (Transform c in parent)
-            {
-                if (c.name == name) return c;
-                var deep = FindChild(c, name);
-                if (deep != null) return deep;
-            }
-            return null;
-        }
+        private void AddRow(string name, string price, string buttonLabel, UnityEngine.Events.UnityAction action) =>
+            RowList.Add(listContent, rowPrefab, name, price, buttonLabel, action);
     }
 }

@@ -36,6 +36,7 @@ namespace FarmQuest.Systems.Farming
         private Renderer _indicatorRenderer;
         private CropHealth _shownHealth = CropHealth.Healthy;
         private Color _lastProduceColor = Color.white;
+        private bool _lastPremium;
 
         public void Bind(FarmTile tile)
         {
@@ -85,11 +86,12 @@ namespace FarmQuest.Systems.Farming
                 _shownStage = wantStage;
                 _shownCrop = wantCrop;
                 if (_cropVisual != null) { Destroy(_cropVisual); _cropVisual = null; }
-                if (harvested) StartCoroutine(CollectBurst(_lastProduceColor));
+                if (harvested) StartCoroutine(CollectBurst(_lastProduceColor, _lastPremium));
                 if (wantStage >= 0)
                 {
                     _cropVisual = BuildCropVisual(Tile.Crop.Data, (GrowthStage)wantStage);
                     _lastProduceColor = Tile.Crop.Data.produceColor;
+                    _lastPremium = Tile.Crop.Data.isPremium;
                     StartCoroutine(Pop(_cropVisual.transform, planted ? 0.2f : 0.6f));
                 }
             }
@@ -141,6 +143,7 @@ namespace FarmQuest.Systems.Farming
                     Stem(root, 0.7f, leaf * 0.85f);
                     Leaves(root, 5, 0.35f, 0.3f, leaf);
                     Ring(root, 4, 0.5f, 0.24f, 0.24f, data.produceColor);
+                    if (data.isPremium) Ring(root, 6, 0.95f, 0.32f, 0.07f, new Color(1f, 0.92f, 0.4f)); // golden sparkle halo
                     break;
             }
             return root;
@@ -252,15 +255,16 @@ namespace FarmQuest.Systems.Farming
             if (t != null) t.localScale = target;
         }
 
-        private IEnumerator CollectBurst(Color color)
+        private IEnumerator CollectBurst(Color color, bool premium)
         {
-            var bits = new Transform[4];
+            // Premium crops get a bigger golden burst.
+            var bits = new Transform[premium ? 10 : 4];
             for (int i = 0; i < bits.Length; i++)
             {
                 var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 var col = go.GetComponent<Collider>();
                 if (col != null) Destroy(col);
-                go.GetComponent<Renderer>().material.color = color;
+                go.GetComponent<Renderer>().material.color = premium && i % 2 == 1 ? new Color(1f, 0.85f, 0.2f) : color;
                 go.transform.position = transform.position + new Vector3(0f, 0.4f, 0f);
                 go.transform.localScale = Vector3.one * 0.25f;
                 bits[i] = go.transform;
@@ -271,8 +275,9 @@ namespace FarmQuest.Systems.Farming
                 float k = t / duration;
                 for (int i = 0; i < bits.Length; i++)
                 {
-                    float a = i * Mathf.PI * 0.5f;
-                    bits[i].position = transform.position + new Vector3(Mathf.Cos(a) * k * 0.8f, 0.4f + k * 1.5f, Mathf.Sin(a) * k * 0.8f);
+                    float a = i * Mathf.PI * 2f / bits.Length;
+                    float spread = premium ? 1.3f : 0.8f;
+                    bits[i].position = transform.position + new Vector3(Mathf.Cos(a) * k * spread, 0.4f + k * (premium ? 2.2f : 1.5f), Mathf.Sin(a) * k * spread);
                     bits[i].localScale = Vector3.one * 0.25f * (1f - k);
                 }
                 yield return null;

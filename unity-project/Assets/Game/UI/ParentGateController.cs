@@ -18,10 +18,23 @@ namespace FarmQuest.UI
 
         private ParentModeService _parents;
         private ParentGateChallenge _challenge;
+        private System.Action _onPassed;
+
+        /// <summary>
+        /// Asks a grown-up before onPassed runs (used before every real-money purchase).
+        /// Cancel or a wrong answer never runs it.
+        /// </summary>
+        public void Request(System.Action onPassed)
+        {
+            _onPassed = onPassed;
+            transform.SetAsLastSibling(); // above whichever panel asked
+            gameObject.SetActive(true);
+            NewChallenge();
+        }
 
         private void Awake()
         {
-            cancelButton?.onClick.AddListener(() => gameObject.SetActive(false));
+            cancelButton?.onClick.AddListener(() => { _onPassed = null; gameObject.SetActive(false); });
             for (int i = 0; i < answerButtons.Length; i++)
             {
                 int idx = i;
@@ -35,6 +48,8 @@ namespace FarmQuest.UI
             _parents = ServiceLocator.Get<ParentModeService>();
             NewChallenge();
         }
+
+        private void OnDisable() => _onPassed = null;
 
         private void NewChallenge()
         {
@@ -52,7 +67,10 @@ namespace FarmQuest.UI
             if (_parents.VerifyAnswer(_challenge, picked))
             {
                 gameObject.SetActive(false);
-                if (dashboardPanel != null) dashboardPanel.SetActive(true);
+                var action = _onPassed;
+                _onPassed = null;
+                if (action != null) action();
+                else if (dashboardPanel != null) dashboardPanel.SetActive(true);
             }
             else
             {

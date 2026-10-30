@@ -144,8 +144,16 @@ namespace FarmQuest.Systems.Farming
                 crop.SchedulePest(0.3f + (float)_rng.NextDouble() * 0.5f);
             if (tile.CompostPrepared) { crop.ApplyCompost(); tile.ClearCompostPrepared(); }
             if (tile.NutrientPrepared) { crop.ApplyNutrient(); tile.ClearNutrientPrepared(); }
+            // Greenhouse: faster growth and no season slowdown.
+            bool greenhouse = false;
+            if (ServiceLocator.TryGet(out Machines.EquipmentService equipment))
+            {
+                float g = equipment.GreenhouseGrowthMultiplier();
+                greenhouse = g < 1f;
+                crop.GrowthTimeMultiplier *= g;
+            }
             // Phase 5: out-of-season crops grow slower, never blocked.
-            if (ServiceLocator.TryGet(out World.SeasonService seasons))
+            if (!greenhouse && ServiceLocator.TryGet(out World.SeasonService seasons))
             {
                 var current = seasons.CurrentSeason;
                 if (data.preferredSeason != Data.Season.None && data.preferredSeason != current)
@@ -179,6 +187,7 @@ namespace FarmQuest.Systems.Farming
             var inventory = ServiceLocator.Get<Inventory.InventoryService>();
             if (!inventory.TryRemove("compost", 1))
             {
+                GameEvents.RaiseSupplyMissing("compost");
                 GameEvents.RaiseToast("No compost — build a compost bin!");
                 return false;
             }
@@ -199,6 +208,7 @@ namespace FarmQuest.Systems.Farming
             var inventory = ServiceLocator.Get<Inventory.InventoryService>();
             if (!inventory.TryRemove("fertilizer", 1))
             {
+                GameEvents.RaiseSupplyMissing("fertilizer");
                 GameEvents.RaiseToast("No fertilizer — buy some at the market!");
                 return false;
             }

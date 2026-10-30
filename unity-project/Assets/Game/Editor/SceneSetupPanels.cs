@@ -107,9 +107,10 @@ namespace FarmQuest.Editor
             dashCtrl.statsText = AddText(dashboard.transform, "Stats", "", 36, new Vector2(0, -200));
             dashCtrl.adsToggleButton = AddButton(dashboard.transform, "AdsToggle", "Ads: ?", new Vector2(380, 80), new Vector2(0, -420));
             dashCtrl.analyticsToggleButton = AddButton(dashboard.transform, "AnalyticsToggle", "Stats: ?", new Vector2(380, 80), new Vector2(0, -520));
-            dashCtrl.limitDownButton = AddButton(dashboard.transform, "LimitDown", "−", new Vector2(120, 80), new Vector2(-200, -640));
-            dashCtrl.limitUpButton = AddButton(dashboard.transform, "LimitUp", "+", new Vector2(120, 80), new Vector2(200, -640));
-            dashCtrl.limitText = AddText(dashboard.transform, "Limit", "", 36, new Vector2(0, -640));
+            dashCtrl.purchasesToggleButton = AddButton(dashboard.transform, "PurchasesToggle", "Purchases: ?", new Vector2(380, 80), new Vector2(0, -620));
+            dashCtrl.limitDownButton = AddButton(dashboard.transform, "LimitDown", "−", new Vector2(120, 80), new Vector2(-200, -740));
+            dashCtrl.limitUpButton = AddButton(dashboard.transform, "LimitUp", "+", new Vector2(120, 80), new Vector2(200, -740));
+            dashCtrl.limitText = AddText(dashboard.transform, "Limit", "", 36, new Vector2(0, -740));
             dashCtrl.closeButton = AddCloseButton(dashboard.transform);
             gateCtrl.dashboardPanel = dashboard;
             hud.parentGatePanel = gate;
@@ -149,8 +150,47 @@ namespace FarmQuest.Editor
             worldCtrl.farmTabButton = AddButton(worldPanel.transform, "FarmTab", "Farm", new Vector2(260, 80), new Vector2(280, -580));
             hud.worldPanel = worldPanel;
 
+            // ---- Free-to-play: Store (offers / gems / decor) and Daily rewards ----
+            var storePanel = CreateListPanel<StorePanelController>(canvas, "StorePanel", "FarmQuest Store", rowPrefab, out var storeCtrl);
+            storeCtrl.headerText = AddText(storePanel.transform, "Header", "", 28, new Vector2(0, 490));
+            ((RectTransform)storeCtrl.headerText.transform).sizeDelta = new Vector2(860, 100);
+            storeCtrl.offersTabButton = AddButton(storePanel.transform, "OffersTab", "Offers", new Vector2(260, 80), new Vector2(-280, -580));
+            storeCtrl.gemsTabButton = AddButton(storePanel.transform, "GemsTab", "Gem Shop", new Vector2(260, 80), new Vector2(0, -580));
+            storeCtrl.decorTabButton = AddButton(storePanel.transform, "DecorTab", "Decor", new Vector2(260, 80), new Vector2(280, -580));
+            storeCtrl.parentGate = gateCtrl;
+            hud.storePanel = storePanel;
+
+            var dailyPanel = CreateListPanel<DailyPanelController>(canvas, "DailyPanel", "Daily Rewards", rowPrefab, out var dailyCtrl);
+            dailyCtrl.headerText = AddText(dailyPanel.transform, "Header", "", 28, new Vector2(0, 490));
+            ((RectTransform)dailyCtrl.headerText.transform).sizeDelta = new Vector2(860, 100);
+            hud.dailyPanel = dailyPanel;
+
             BuildBottomNav(canvasGo, hud);
+            BuildAdOffer(canvas);
             BuildCelebration(canvas);
+        }
+
+        private static void BuildAdOffer(Transform canvas)
+        {
+            var go = new GameObject("AdOffer");
+            go.transform.SetParent(canvas, false);
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0f); rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.sizeDelta = Vector2.zero;
+            var ctrl = go.AddComponent<AdOfferPopupController>();
+            var card = new GameObject("Card");
+            card.transform.SetParent(go.transform, false);
+            var crt = card.AddComponent<RectTransform>();
+            crt.anchorMin = new Vector2(0.5f, 0.5f); crt.anchorMax = new Vector2(0.5f, 0.5f);
+            crt.anchoredPosition = new Vector2(0, 420);
+            crt.sizeDelta = new Vector2(900, 230);
+            card.AddComponent<Image>().color = new Color(0.15f, 0.3f, 0.5f, 0.95f);
+            ctrl.root = card;
+            ctrl.messageText = AddText(card.transform, "Message", "", 32, new Vector2(0, 50));
+            ctrl.watchButton = AddButton(card.transform, "Watch", "Watch ad", new Vector2(300, 80), new Vector2(-170, -60));
+            ctrl.noThanksButton = AddButton(card.transform, "NoThanks", "No thanks", new Vector2(300, 80), new Vector2(170, -60));
+            ctrl.noThanksButton.GetComponent<Image>().color = new Color(0.4f, 0.4f, 0.45f);
+            card.SetActive(false);
         }
 
         private static void BuildCelebration(Transform canvas)
@@ -301,7 +341,7 @@ namespace FarmQuest.Editor
 
             var items = new (string label, System.Action action)[]
             {
-                ("World", hud.ToggleWorld),
+                ("World", hud.ToggleWorld), ("Daily", hud.ToggleDaily), ("Store", hud.ToggleStore),
                 ("Market", hud.ToggleMarket), ("Seeds", hud.ToggleSeedShop), ("Bag", hud.ToggleInventory),
                 ("Quests", hud.ToggleMissions), ("Orders", hud.ToggleOrders), ("Barn", hud.ToggleAnimals),
                 ("Factory", hud.ToggleProduction), ("Village", hud.ToggleVillage), ("Equip", hud.ToggleEquipment),
@@ -310,12 +350,14 @@ namespace FarmQuest.Editor
             };
             for (int i = 0; i < items.Length; i++)
             {
-                int row = i / 7, col = i % 7;
+                int row = i / 8, col = i % 8;
                 var b = AddButton(bar.transform, "Nav" + i, items[i].label,
-                    new Vector2(140, 120), Vector2.zero);
+                    new Vector2(124, 120), Vector2.zero);
+                var navLabel = b.GetComponentInChildren<Text>();
+                if (navLabel != null) navLabel.fontSize = 28;
                 var rt = (RectTransform)b.transform;
                 rt.anchorMin = new Vector2(0, 1); rt.anchorMax = new Vector2(0, 1);
-                rt.anchoredPosition = new Vector2(90 + col * 150, -75 - row * 135);
+                rt.anchoredPosition = new Vector2(72 + col * 133, -75 - row * 135);
                 int idx = i;
                 b.onClick.AddListener(() => items[idx].action());
             }

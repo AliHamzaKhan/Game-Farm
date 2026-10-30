@@ -133,6 +133,7 @@ namespace FarmQuest.Editor
             var hud = hudGo.AddComponent<HudController>();
             hud.coinsText = MakeText(hudGo.transform, "Coins", "🪙 100", 44, new Vector2(-20, -30), TextAnchor.UpperRight);
             hud.levelText = MakeText(hudGo.transform, "Level", "Lv 1", 40, new Vector2(20, -30), TextAnchor.UpperLeft);
+            hud.gemsText = MakeText(hudGo.transform, "Gems", "Gems 0", 38, new Vector2(-20, -150), TextAnchor.UpperRight);
             hud.clockText = MakeText(hudGo.transform, "Clock", "", 36, new Vector2(0, -30), TextAnchor.UpperCenter);
             hud.cityText = MakeText(hudGo.transform, "City", "", 34, new Vector2(0, -95), TextAnchor.UpperCenter);
             ((RectTransform)hud.cityText.transform).sizeDelta = new Vector2(1000, 60);
@@ -162,6 +163,12 @@ namespace FarmQuest.Editor
             plot.pruneButton = MakeGridButton(plotGo.transform, "Prune", "Prune", 0, 4);
             plot.compostButton = MakeGridButton(plotGo.transform, "Compost", "Compost", 1, 4);
             plot.harvestButton = MakeGridButton(plotGo.transform, "Harvest", "Harvest", 0, 5);
+            // Consumables only show on a planted crop, so they share the soil buttons' slots.
+            var itemColor = new Color(0.55f, 0.4f, 0.8f);
+            plot.premiumFertilizerButton = MakeGridButton(plotGo.transform, "PremiumFertilizer", "Premium Fertilizer", 0, 0, itemColor);
+            plot.liquidNutrientButton = MakeGridButton(plotGo.transform, "LiquidNutrient", "Liquid Nutrients", 1, 0, itemColor);
+            plot.growthBoosterButton = MakeGridButton(plotGo.transform, "GrowthBooster", "Growth Booster", 0, 1, itemColor);
+            plot.superCompostButton = MakeGridButton(plotGo.transform, "SuperCompost", "Super Compost", 1, 1, itemColor);
             plot.adOfferText = MakeText(plotGo.transform, "AdOffer", "", 26, new Vector2(0, -900), TextAnchor.UpperCenter, 0);
             ((RectTransform)plot.adOfferText.transform).sizeDelta = new Vector2(500, 90);
             var adColor = new Color(0.3f, 0.55f, 0.85f);

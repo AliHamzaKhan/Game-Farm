@@ -61,6 +61,8 @@ namespace FarmQuest.Core.Save
                 world = ServiceLocator.Get<WorldProgressionService>().CaptureState(),
                 farmUpgrades = ServiceLocator.Get<FarmUpgradeService>().CaptureState(),
                 ads = ServiceLocator.Get<Systems.Ads.RewardedAdService>().CaptureState(),
+                store = ServiceLocator.Get<Systems.Store.StoreService>().CaptureState(),
+                daily = ServiceLocator.Get<Systems.Store.DailyRewardService>().CaptureState(),
                 updatedAtTicks = System.DateTime.UtcNow.Ticks,
                 installId = InstallId
             };
@@ -99,6 +101,8 @@ namespace FarmQuest.Core.Save
             ServiceLocator.Get<FarmUpgradeService>().RestoreState(data.farmUpgrades);
             ServiceLocator.Get<WorldProgressionService>().RestoreState(data.world);
             ServiceLocator.Get<Systems.Ads.RewardedAdService>().RestoreState(data.ads);
+            ServiceLocator.Get<Systems.Store.StoreService>().RestoreState(data.store);
+            ServiceLocator.Get<Systems.Store.DailyRewardService>().RestoreState(data.daily);
             ServiceLocator.Get<FarmService>().RestoreState(data.farm);
             ServiceLocator.Get<InventoryService>().RestoreState(data.inventory);
             ServiceLocator.Get<EconomyService>().RestoreState(data.economy);

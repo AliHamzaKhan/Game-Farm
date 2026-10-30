@@ -23,6 +23,8 @@ namespace FarmQuest.Systems.ParentMode
     {
         public bool AdsAllowed { get; set; } = true;
         public bool AnalyticsAllowed { get; set; } = true;
+        /// <summary>Real-money purchases. Each purchase still needs the parent gate.</summary>
+        public bool PurchasesAllowed { get; set; } = true;
         /// <summary>0 = no limit.</summary>
         public int MaxDailyPlayMinutes { get; set; } = 0;
 
@@ -61,6 +63,7 @@ namespace FarmQuest.Systems.ParentMode
             {
                 adsAllowed = AdsAllowed,
                 analyticsAllowed = AnalyticsAllowed,
+                purchasesAllowed = PurchasesAllowed,
                 maxDailyPlayMinutes = MaxDailyPlayMinutes
             };
         }
@@ -70,6 +73,7 @@ namespace FarmQuest.Systems.ParentMode
             if (data == null) return;
             AdsAllowed = data.adsAllowed;
             AnalyticsAllowed = data.analyticsAllowed;
+            PurchasesAllowed = data.purchasesAllowed;
             MaxDailyPlayMinutes = data.maxDailyPlayMinutes;
         }
     }

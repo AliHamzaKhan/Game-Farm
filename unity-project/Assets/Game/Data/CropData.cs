@@ -34,6 +34,12 @@ namespace FarmQuest.Data
         public bool compostRequiredForTopQuality = true;
         public Season preferredSeason = Season.None;
 
+        [Header("Premium crops (bought with gems; never needed for city contracts)")]
+        public bool isPremium;
+        [Tooltip("Gems for a pack of premiumSeedPack seeds.")]
+        public int gemSeedPrice;
+        public int premiumSeedPack = 3;
+
         [Header("Care (crop-specific; leave off what a crop doesn't need)")]
         [Tooltip("Seconds a watering lasts. 0 = only the initial waterings count (no drying out).")]
         public float waterIntervalSeconds = 0f;

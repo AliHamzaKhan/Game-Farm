@@ -134,6 +134,26 @@
 | 10.12 | Weekly challenges, farming statistics screen | 📋 Planned | Not in this update |
 | 10.13 | Balance pass on later-city targets with real playtime | 📋 Planned | Tune in WorldData |
 
+## 11. Free-to-Play Economy (coins + gems, IAP, rewarded ads, daily rewards)
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 11.1 | Out-of-seeds safety net (free seeds once a day when stuck) | ✅ Done | `DailyRewardService.TryRescue` |
+| 11.2 | Farm Gems currency + HUD; free gems from cities/countries/login/weekly | ✅ Done | Save v3 |
+| 11.3 | Premium seeds: Golden Tomato, Rainbow Corn, Giant Pumpkin, Golden Strawberry, Ruby Watermelon, Dragon Fruit | ✅ Done | Gems only; never in contracts/orders |
+| 11.4 | Tiered consumables: Premium Fertilizer, Liquid Nutrients, Growth Booster, Super Compost | ✅ Done | Data-driven `ConsumableEffect` |
+| 11.5 | Equipment: Greenhouse, Fertilizer Machine, gem models of irrigation | ✅ Done | Sprinklers now handle timed watering |
+| 11.6 | Cosmetics + country packs (Japan garden etc.) | ✅ Done | No gameplay stats |
+| 11.7 | Store (offers / gem shop / decor) with parent gate per purchase, once-per-transaction grants | ✅ Done | `IIapProvider` seam, editor stub |
+| 11.8 | Daily login calendar, daily free seeds, weekly challenges | ✅ Done | Missed days pause, never reset |
+| 11.9 | Natural-moment ad offers (double harvest, delivery/mission bonus, free supplies, daily double) | ✅ Done | Cooldowns + global gap |
+| 11.10 | Parent dashboard: ads switch now enforced; purchases switch added | ✅ Done | Ads switch did nothing before |
+| 11.11 | ECONOMY.md + generated ECONOMY_TABLE.md | ✅ Done | Menu: Generate → Economy Report |
+| 11.12 | Real Unity IAP provider + store products + receipt validation | 📋 Planned | Needs store accounts |
+| 11.13 | VIP subscription | 📋 Planned | Later; see ECONOMY.md §8 |
+| 11.14 | Storage capacity upgrade | 📋 Planned | Inventory has no cap yet |
+| 11.15 | User: Generate All Game Data + Create Test Scenes + run tests + try Store/Daily | ⏳ Pending | Needs Unity |
+
 ---
 
 ### How to update this file

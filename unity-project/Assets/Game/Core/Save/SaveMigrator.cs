@@ -39,6 +39,8 @@ namespace FarmQuest.Core.Save
             if (data.world.objectiveProgress == null) data.world.objectiveProgress = new List<long>();
             if (data.farmUpgrades == null) data.farmUpgrades = new FarmUpgradeSaveData();
             if (data.ads == null) data.ads = new AdSaveData();
+            if (data.store == null) data.store = new StoreSaveData();
+            if (data.daily == null) data.daily = new DailySaveData();
 
             while (data.version < SaveService.CurrentVersion)
             {
@@ -51,6 +53,10 @@ namespace FarmQuest.Core.Save
                         // v2 adds crop care, world tour, upgrades, ad history. New fields
                         // default safely (no pests, watered at planting, first city).
                         data.version = 2;
+                        break;
+                    case 2:
+                        // v3 adds gems, store purchases, daily rewards (all default to empty).
+                        data.version = 3;
                         break;
                     default:
                         Debug.LogWarning($"[SaveMigrator] Unknown save version {data.version}, stamping current.");

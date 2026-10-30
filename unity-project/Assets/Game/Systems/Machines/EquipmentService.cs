@@ -28,7 +28,37 @@ namespace FarmQuest.Systems.Machines
             }
         }
 
-        public bool BuyEquipment(string equipmentId)
+        /// <summary>Grants equipment without payment (bundles, rewards). No-op if owned.</summary>
+        public bool Grant(string equipmentId)
+        {
+            if (_database.GetEquipment(equipmentId) == null || !_owned.Add(equipmentId)) return false;
+            GameEvents.RaiseEquipmentBought(equipmentId);
+            GameEvents.RaiseEquipmentChanged();
+            return true;
+        }
+
+        public IEnumerable<EquipmentData> AllEquipment() => _database.equipment;
+
+        public bool HasType(EquipmentType type)
+        {
+            foreach (var e in OwnedEquipment()) if (e.type == type) return true;
+            return false;
+        }
+
+        /// <summary>Greenhouse growth-time multiplier (1 = none). Owned greenhouses don't stack.</summary>
+        public float GreenhouseGrowthMultiplier()
+        {
+            float best = 1f;
+            foreach (var e in OwnedEquipment())
+                if (e.type == EquipmentType.Greenhouse && e.speedMultiplier > 0f)
+                    best = UnityEngine.Mathf.Min(best, 1f / e.speedMultiplier);
+            return best;
+        }
+
+        public bool BuyEquipment(string equipmentId) => BuyEquipment(equipmentId, false);
+
+        /// <summary>Buys with coins, or with gems when the item has a gem price.</summary>
+        public bool BuyEquipment(string equipmentId, bool withGems)
         {
             var data = _database.GetEquipment(equipmentId);
             if (data == null || _owned.Contains(equipmentId)) return false;
@@ -39,7 +69,15 @@ namespace FarmQuest.Systems.Machines
                 return false;
             }
             var economy = ServiceLocator.Get<EconomyService>();
-            if (!economy.TrySpend(data.cost))
+            if (withGems)
+            {
+                if (data.gemPrice <= 0 || !economy.TrySpendGems(data.gemPrice))
+                {
+                    GameEvents.RaiseToast(data.gemPrice <= 0 ? "Not sold for gems." : $"Need {data.gemPrice} gems.");
+                    return false;
+                }
+            }
+            else if (!economy.TrySpend(data.cost))
             {
                 GameEvents.RaiseToast($"Need {data.cost} coins.");
                 return false;

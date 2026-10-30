@@ -41,4 +41,20 @@ namespace FarmQuest.Data
 
     /// <summary>Crop-specific nutrient. Each maps to an inventory item "nutrient_&lt;name&gt;".</summary>
     public enum NutrientType { None = 0, Nitrogen = 1, Potassium = 2, Calcium = 3 }
+
+    /// <summary>Basic = Farm Coins; Advanced = coins or gems; Premium = gems or event rewards.</summary>
+    public enum ItemTier { Basic = 0, Advanced = 1, Premium = 2 }
+
+    /// <summary>What a consumable does when used on a planted crop (CropCareService.TryUseConsumable).</summary>
+    public enum ConsumableEffect
+    {
+        None,
+        Fertilizer,        // basic fertilizer
+        Compost,           // organic compost: plant health / quality
+        PestSpray,         // clears a pest attack
+        PremiumFertilizer, // fertilizer + growth time reduced by effectValue (fraction of the timer)
+        LiquidNutrient,    // satisfies any nutrient need + yield x (1 + effectValue)
+        GrowthBooster,     // instantly reduces remaining time by effectValue (fraction of the timer)
+        SuperCompost       // compost + fertilizer + nutrient + clears pests
+    }
 }

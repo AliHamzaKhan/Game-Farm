@@ -3,10 +3,32 @@ using FarmQuest.Core.Services;
 
 namespace FarmQuest.Systems.Economy
 {
-    /// <summary>LOGIC: coin wallet (§28). All coin changes flow through here.</summary>
+    /// <summary>
+    /// LOGIC: wallet (§28). Farm Coins are earned by farming and buy everything
+    /// a player needs. Farm Gems are the premium currency: earned for free
+    /// (cities, login calendar, weekly challenges) or bought; they buy
+    /// convenience, premium seeds and cosmetics — never required to progress.
+    /// </summary>
     public class EconomyService
     {
         public long Coins { get; private set; }
+        public long Gems { get; private set; }
+
+        public void AddGems(long amount, string reason = null)
+        {
+            if (amount <= 0) return;
+            Gems += amount;
+            GameEvents.RaiseGemsChanged(Gems);
+        }
+
+        public bool TrySpendGems(long amount)
+        {
+            if (amount <= 0) return true;
+            if (Gems < amount) return false;
+            Gems -= amount;
+            GameEvents.RaiseGemsChanged(Gems);
+            return true;
+        }
 
         public void AddCoins(long amount, string reason = null)
         {
@@ -44,6 +66,7 @@ namespace FarmQuest.Systems.Economy
             return new EconomySaveData
             {
                 coins = Coins,
+                gems = Gems,
                 xp = progression != null ? progression.Xp : 0,
                 level = progression != null ? progression.Level : 1
             };
@@ -52,7 +75,9 @@ namespace FarmQuest.Systems.Economy
         public void RestoreState(EconomySaveData data)
         {
             Coins = data != null ? data.coins : 0;
+            Gems = data != null ? System.Math.Max(0, data.gems) : 0;
             GameEvents.RaiseCoinsChanged(Coins);
+            GameEvents.RaiseGemsChanged(Gems);
             if (data != null && ServiceLocator.TryGet(out ProgressionService p))
                 p.Restore(data.xp, data.level);
         }

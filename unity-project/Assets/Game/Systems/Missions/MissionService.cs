@@ -117,6 +117,7 @@ namespace FarmQuest.Systems.Missions
                 economy.AddCoins(mission.Data.rewardCoins, "mission");
                 economy.AddXp(mission.Data.rewardXp, "mission");
                 GameEvents.RaiseMissionClaimed(missionId);
+                GameEvents.RaiseMissionRewarded(missionId, mission.Data.rewardCoins);
                 GameEvents.RaiseToast($"🎁 +{mission.Data.rewardCoins} coins, +{mission.Data.rewardXp} XP!");
                 return true;
             }

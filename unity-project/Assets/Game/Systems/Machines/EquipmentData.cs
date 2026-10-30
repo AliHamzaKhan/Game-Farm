@@ -9,7 +9,9 @@ namespace FarmQuest.Systems.Machines
         Sprayer,    // unlocks tractor Fertilize mode
         Harvester,  // unlocks tractor Harvest mode
         Planter,    // auto-planter: widens Plant mode radius
-        Irrigation  // auto-waters crops on a timer
+        Irrigation, // auto-waters crops on a timer
+        Greenhouse, // crops grow faster (speedMultiplier) and ignore season slowdowns
+        FertilizerMachine // auto-applies fertilizer from the bag to crops that need it
     }
 
     /// <summary>Data-driven equipment (§23, tiers from GDD §13).</summary>
@@ -21,6 +23,8 @@ namespace FarmQuest.Systems.Machines
         public EquipmentType type = EquipmentType.Tractor;
         public int unlockLevel = 15;
         public int cost = 2500;
+        [Tooltip("Optional gem price for buying it without coins (same level requirement).")]
+        public int gemPrice;
         [TextArea] public string description = "Plows a 3x3 area as you drive.";
 
         [Header("Tractor stats")]

@@ -18,9 +18,13 @@ namespace FarmQuest.Systems.Machines
             time.SecondTick += OnSecondTick;
         }
 
+        private float _fertilizerTimer;
+        private const float FertilizerMachineInterval = 60f;
+
         private void OnSecondTick()
         {
             if (!ServiceLocator.TryGet(out EquipmentService equipment)) return;
+            RunFertilizerMachine(equipment);
             var best = equipment.BestIrrigation();
             if (best == null) return;
 
@@ -33,14 +37,32 @@ namespace FarmQuest.Systems.Machines
             foreach (var tile in farm.AllTiles())
             {
                 if (done >= best.waterCount) break;
-                if (tile.HasCrop && !tile.Crop.IsReady &&
-                    tile.Crop.WateringsDone < tile.Crop.Data.waterRequired)
+                if (tile.HasCrop && tile.Crop.NeedsWater)
                 {
                     if (farm.TryWater(tile)) done++;
                 }
             }
             if (done > 0)
                 GameEvents.RaiseToast($"💧 Irrigation watered {done} crops!");
+        }
+
+        /// <summary>Fertilizer machine: feeds crops that need it, using fertilizer from the bag.</summary>
+        private void RunFertilizerMachine(EquipmentService equipment)
+        {
+            if (!equipment.HasType(EquipmentType.FertilizerMachine)) return;
+            _fertilizerTimer += 1f;
+            if (_fertilizerTimer < FertilizerMachineInterval) return;
+            _fertilizerTimer = 0f;
+            var farm = ServiceLocator.Get<FarmService>();
+            var inventory = ServiceLocator.Get<Inventory.InventoryService>();
+            int done = 0;
+            foreach (var tile in farm.AllTiles())
+            {
+                if (!tile.HasCrop || !tile.Crop.NeedsFertilizer) continue;
+                if (inventory.GetCount("fertilizer") <= 0) break;
+                if (farm.TryApplyNutrient(tile)) done++;
+            }
+            if (done > 0) GameEvents.RaiseToast($"Fertilizer machine fed {done} crops!");
         }
     }
 }

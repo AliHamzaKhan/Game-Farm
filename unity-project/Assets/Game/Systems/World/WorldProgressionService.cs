@@ -103,6 +103,7 @@ namespace FarmQuest.Systems.World
                 prices = src.prices,
                 rewardCoins = (long)Math.Round(src.rewardCoins * r),
                 rewardXp = Mathf.RoundToInt(src.rewardXp * r),
+                rewardGems = src.rewardGems,
                 rewardItems = src.rewardItems
             };
             foreach (var o in src.objectives)
@@ -280,6 +281,7 @@ namespace FarmQuest.Systems.World
                 var economy = ServiceLocator.Get<EconomyService>();
                 economy.AddCoins(done.City.rewardCoins, "city_complete");
                 economy.AddXp(done.City.rewardXp, "city_complete");
+                economy.AddGems(done.City.rewardGems, "city_complete");
                 if (done.City.rewardItems != null && ServiceLocator.TryGet(out InventoryService inventory))
                     foreach (var r in done.City.rewardItems)
                         if (!string.IsNullOrEmpty(r.itemId) && r.count > 0) inventory.Add(r.itemId, r.count);
@@ -291,6 +293,7 @@ namespace FarmQuest.Systems.World
                     long bonus = (long)Math.Round(done.Country.completionBonusCoins * (1f + _world.lapRewardGrowth * done.Lap));
                     economy.AddCoins(bonus, "country_complete");
                     economy.AddXp(done.Country.completionBonusXp, "country_complete");
+                    economy.AddGems(done.Country.completionBonusGems, "country_complete");
                     CountriesCompleted++;
                     GameEvents.RaiseCountryCompleted(done.CountryName);
                 }

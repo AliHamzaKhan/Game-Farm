@@ -16,6 +16,7 @@ namespace FarmQuest.UI
         public Text statsText;
         public Button adsToggleButton;
         public Button analyticsToggleButton;
+        public Button purchasesToggleButton;
         public Button limitDownButton;
         public Button limitUpButton;
         public Text limitText;
@@ -35,6 +36,11 @@ namespace FarmQuest.UI
             analyticsToggleButton?.onClick.AddListener(() =>
             {
                 _parents.AnalyticsAllowed = !_parents.AnalyticsAllowed;
+                Refresh();
+            });
+            purchasesToggleButton?.onClick.AddListener(() =>
+            {
+                _parents.PurchasesAllowed = !_parents.PurchasesAllowed;
                 Refresh();
             });
             limitDownButton?.onClick.AddListener(() => ChangeLimit(-30));
@@ -71,6 +77,7 @@ namespace FarmQuest.UI
 
             SetToggle(adsToggleButton, "Rewarded ads", _parents.AdsAllowed);
             SetToggle(analyticsToggleButton, "Anonymous analytics", _parents.AnalyticsAllowed);
+            SetToggle(purchasesToggleButton, "In-app purchases", _parents.PurchasesAllowed);
             if (limitText != null)
                 limitText.text = _parents.MaxDailyPlayMinutes <= 0
                     ? "Daily limit: none"

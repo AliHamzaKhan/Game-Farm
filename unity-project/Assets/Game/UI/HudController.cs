@@ -12,6 +12,7 @@ namespace FarmQuest.UI
     {
         [Header("Top bar")]
         public Text coinsText;
+        public Text gemsText;
         public Text levelText;
         public Slider xpSlider;
         public Text clockText;
@@ -33,6 +34,8 @@ namespace FarmQuest.UI
         public GameObject villagePanel;
         public GameObject parentGatePanel;
         public GameObject worldPanel;
+        public GameObject storePanel;
+        public GameObject dailyPanel;
         public Text toastText;
 
         private float _toastTimer;
@@ -44,11 +47,13 @@ namespace FarmQuest.UI
             GameEvents.LevelUp += OnLevelUp;
             GameEvents.ToastRequested += ShowToast;
             GameEvents.WorldChanged += OnWorldChanged;
+            GameEvents.GemsChanged += OnGems;
             OnWorldChanged();
 
             var economy = ServiceLocator.Get<Systems.Economy.EconomyService>();
             var progression = ServiceLocator.Get<Systems.Economy.ProgressionService>();
             OnCoins(economy.Coins);
+            OnGems(economy.Gems);
             OnLevel(progression.Level, progression.Xp);
         }
 
@@ -59,6 +64,12 @@ namespace FarmQuest.UI
             GameEvents.LevelUp -= OnLevelUp;
             GameEvents.ToastRequested -= ShowToast;
             GameEvents.WorldChanged -= OnWorldChanged;
+            GameEvents.GemsChanged -= OnGems;
+        }
+
+        private void OnGems(long gems)
+        {
+            if (gemsText != null) gemsText.text = $"Gems {gems:N0}";
         }
 
         private void OnWorldChanged()
@@ -127,6 +138,8 @@ namespace FarmQuest.UI
         public void ToggleVillage() => Toggle(villagePanel);
         public void ToggleParentGate() => Toggle(parentGatePanel);
         public void ToggleWorld() => Toggle(worldPanel);
+        public void ToggleStore() => Toggle(storePanel);
+        public void ToggleDaily() => Toggle(dailyPanel);
 
         private static void Toggle(GameObject go)
         {

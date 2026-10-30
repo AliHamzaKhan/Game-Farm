@@ -74,6 +74,9 @@ namespace FarmQuest.Systems.Ads
         {
             RollDayIfNeeded();
             if (_showing || _provider == null || !_provider.IsReady) return false;
+            // Parent dashboard switch: no ads at all when a parent turned them off.
+            if (Core.Services.ServiceLocator.TryGet(out ParentMode.ParentModeService parents) && !parents.AdsAllowed)
+                return false;
             if (_adsWatchedToday >= _config.MaxRewardedAdsPerDay) return false;
             if (Time.realtimeSinceStartup - _lastAdTime < _config.RewardedAdCooldownSeconds) return false;
             return true;

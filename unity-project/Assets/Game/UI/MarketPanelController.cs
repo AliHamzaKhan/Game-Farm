@@ -89,7 +89,7 @@ namespace FarmQuest.UI
             ClearList();
             foreach (var crop in _database.crops)
             {
-                if (!Systems.World.WorldProgressionService.IsCropAvailable(crop)) continue;
+                if (crop.isPremium || !Systems.World.WorldProgressionService.IsCropAvailable(crop)) continue;
                 string c = crop.cropId; // capture
                 AddRow($"{crop.displayName} seed", $"🪙 {crop.seedPrice}", "BUY",
                     () => _market.BuySeed(c, 1));

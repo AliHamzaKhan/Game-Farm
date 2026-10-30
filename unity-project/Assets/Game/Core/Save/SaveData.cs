@@ -35,6 +35,8 @@ namespace FarmQuest.Core.Save
         public WorldSaveData world = new WorldSaveData();
         public FarmUpgradeSaveData farmUpgrades = new FarmUpgradeSaveData();
         public AdSaveData ads = new AdSaveData();
+        public StoreSaveData store = new StoreSaveData();
+        public DailySaveData daily = new DailySaveData();
         /// <summary>Last write time (cloud conflict resolution). Phase 6.</summary>
         public long updatedAtTicks;
         /// <summary>Random per-install id for cloud save. Not PII. Phase 6.</summary>
@@ -102,6 +104,7 @@ namespace FarmQuest.Core.Save
     public class EconomySaveData
     {
         public long coins;
+        public long gems;
         public int xp;
         public int level = 1;
         public int rewardedAdsWatchedToday;
@@ -310,6 +313,7 @@ namespace FarmQuest.Core.Save
     {
         public bool adsAllowed = true;
         public bool analyticsAllowed = true;
+        public bool purchasesAllowed = true;
         public int maxDailyPlayMinutes;
     }
 
@@ -356,5 +360,26 @@ namespace FarmQuest.Core.Save
         public float secondsReducedToday;
         public int totalAdsWatched;
         public double totalSecondsAccelerated;
+    }
+
+    // ---------- v3: free-to-play store and daily rewards ----------
+
+    [Serializable]
+    public class StoreSaveData
+    {
+        /// <summary>Store transaction ids already credited (prevents double grants).</summary>
+        public List<string> processedTransactions = new List<string>();
+        public List<string> ownedNonConsumables = new List<string>();
+    }
+
+    [Serializable]
+    public class DailySaveData
+    {
+        public int calendarIndex;
+        public string lastClaimDay = "";
+        public string lastRescueDay = "";
+        public string weekStamp = "";
+        public List<long> weeklyProgress = new List<long>();
+        public List<bool> weeklyClaimed = new List<bool>();
     }
 }

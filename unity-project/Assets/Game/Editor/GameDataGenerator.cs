@@ -51,6 +51,7 @@ namespace FarmQuest.Editor
             GenerateGameEvents();
             GenerateWorld();
             GenerateFarmUpgrades();
+            GenerateStoreCatalog();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log($"[FarmQuest] Generated {crops.Count} crops, {items.Count} items, game events, " +
@@ -64,6 +65,7 @@ namespace FarmQuest.Editor
             public string id, name; public int level, seed, sell, min, max, xp, water, stages;
             public float seconds; public Season season;
             public CropCategory category;
+            public int gems; public int unlockCity; // premium crops only
         }
 
         private static List<CropData> GenerateCrops()
@@ -87,6 +89,14 @@ namespace FarmQuest.Editor
                 new CropSpec { id="sunflower", name="Sunflower", level=21, seed=70, sell=30, min=4, max=6, xp=22, water=2, stages=6, seconds=1200, season=Season.None, category=CropCategory.Special },
                 new CropSpec { id="mango", name="Mango", level=26, seed=150, sell=40, min=6, max=10, xp=30, water=4, stages=6, seconds=7200, season=Season.Summer, category=CropCategory.Fruit },
                 new CropSpec { id="peach", name="Peach", level=30, seed=180, sell=45, min=6, max=10, xp=32, water=4, stages=6, seconds=10800, season=Season.None, category=CropCategory.Fruit },
+                // ---- Premium crops: gem seeds (also free from login day 7 / challenges), ~4x value.
+                // Never used by city contracts or orders, so nobody has to buy them.
+                new CropSpec { id="golden_tomato",     name="Golden Tomato",     level=1, sell=50,  min=5, max=8,  xp=20, water=2, stages=6, seconds=300,  category=CropCategory.Special, gems=20, unlockCity=0 },
+                new CropSpec { id="rainbow_corn",      name="Rainbow Corn",      level=1, sell=55,  min=6, max=10, xp=28, water=3, stages=6, seconds=600,  category=CropCategory.Special, gems=25, unlockCity=3 },
+                new CropSpec { id="giant_pumpkin",     name="Giant Pumpkin",     level=1, sell=120, min=3, max=5,  xp=32, water=2, stages=6, seconds=900,  category=CropCategory.Special, gems=30, unlockCity=4 },
+                new CropSpec { id="golden_strawberry", name="Golden Strawberry", level=1, sell=60,  min=6, max=10, xp=36, water=3, stages=6, seconds=360,  category=CropCategory.Special, gems=25, unlockCity=5 },
+                new CropSpec { id="ruby_watermelon",   name="Ruby Watermelon",   level=1, sell=150, min=3, max=5,  xp=40, water=4, stages=6, seconds=1200, category=CropCategory.Special, gems=35, unlockCity=6 },
+                new CropSpec { id="dragon_fruit",      name="Exotic Dragon Fruit", level=1, sell=90, min=6, max=10, xp=44, water=3, stages=6, seconds=900, category=CropCategory.Special, gems=40, unlockCity=13 },
             };
 
             var list = new List<CropData>();
@@ -106,6 +116,9 @@ namespace FarmQuest.Editor
                 crop.growthStages = s.stages;
                 crop.waterRequired = s.water;
                 crop.preferredSeason = s.season;
+                crop.isPremium = s.gems > 0;
+                crop.gemSeedPrice = s.gems;
+                crop.premiumSeedPack = 3;
                 ApplyCare(crop);
                 SaveAsset(crop, $"{Root}/Crop_{s.id}.asset");
                 list.Add(crop);
@@ -138,10 +151,42 @@ namespace FarmQuest.Editor
             { "wheat",      new CareSpec { weights=new[]{0.8f,1.5f,2f,0.7f,1.2f}, waterInterval=0, nutrient=NutrientType.Nitrogen, pest=0.20f, leaf=C(0.55f,0.75f,0.30f), flower=C(0.95f,0.90f,0.60f), produce=C(0.90f,0.75f,0.30f) } },
             { "sunflower",  new CareSpec { weights=new[]{1f,1f,2f,2f,1f},       waterInterval=150, pest=0.15f, leaf=C(0.30f,0.65f,0.25f), flower=C(1f,0.85f,0.05f), produce=C(0.40f,0.25f,0.10f) } },
             { "mango",      new CareSpec { weights=new[]{1f,1f,2f,1.5f,2f},     waterInterval=600, fertilizer=true, prune=true, pest=0.25f, leaf=C(0.20f,0.50f,0.20f), flower=C(1f,0.95f,0.70f), produce=C(1f,0.75f,0.10f) } },
+            { "golden_tomato",     new CareSpec { weights=new[]{0.8f,1f,1.6f,1.2f,2.4f}, waterInterval=120, fertilizer=true, prune=true, pest=0.15f, leaf=C(0.30f,0.62f,0.22f), flower=C(1f,0.95f,0.40f), produce=C(1f,0.80f,0.10f) } },
+            { "rainbow_corn",      new CareSpec { weights=new[]{0.8f,1.2f,2.4f,1f,1.6f}, waterInterval=180, fertilizer=true, pest=0.15f, leaf=C(0.35f,0.70f,0.25f), flower=C(0.95f,0.80f,0.95f), produce=C(0.70f,0.30f,0.95f) } },
+            { "giant_pumpkin",     new CareSpec { weights=new[]{1f,1f,2f,1.2f,2.8f},   waterInterval=200, fertilizer=true, prune=true, pest=0.15f, leaf=C(0.25f,0.58f,0.22f), flower=C(1f,0.80f,0.15f), produce=C(1f,0.45f,0.0f) } },
+            { "golden_strawberry", new CareSpec { weights=new[]{0.8f,1f,1.2f,1.4f,1.6f}, waterInterval=100, prune=true, pest=0.15f, leaf=C(0.25f,0.65f,0.25f), flower=C(1f,1f,0.85f), produce=C(1f,0.75f,0.15f) } },
+            { "ruby_watermelon",   new CareSpec { weights=new[]{1f,1f,2f,1.2f,2.8f},   waterInterval=200, fertilizer=true, pest=0.15f, leaf=C(0.25f,0.60f,0.25f), flower=C(1f,0.90f,0.25f), produce=C(0.75f,0.0f,0.15f) } },
+            { "dragon_fruit",      new CareSpec { weights=new[]{1f,1f,2f,1.5f,2f},     waterInterval=240, nutrient=NutrientType.Calcium, prune=true, pest=0.15f, leaf=C(0.30f,0.65f,0.35f), flower=C(1f,1f,0.95f), produce=C(1f,0.20f,0.55f) } },
             { "peach",      new CareSpec { weights=new[]{1f,1f,2f,1.5f,2f},     waterInterval=600, fertilizer=true, nutrient=NutrientType.Calcium, prune=true, pest=0.25f, leaf=C(0.25f,0.55f,0.25f), flower=C(1f,0.75f,0.85f), produce=C(1f,0.65f,0.45f) } },
         };
 
         private static Color C(float r, float g, float b) => new Color(r, g, b);
+
+        // Optional gem prices: the coin price always stays available.
+        private static int EquipmentGemPrice(string id)
+        {
+            switch (id)
+            {
+                case "sprinkler": return 80;
+                case "irrigation": return 250;
+                case "greenhouse": return 300;
+                case "fertilizer_machine": return 200;
+                default: return 0;
+            }
+        }
+
+        private static int PremiumUnlockCity(string cropId)
+        {
+            switch (cropId)
+            {
+                case "rainbow_corn": return 3;      // Faisalabad
+                case "giant_pumpkin": return 4;     // Multan
+                case "golden_strawberry": return 5; // Peshawar
+                case "ruby_watermelon": return 6;   // Quetta
+                case "dragon_fruit": return 13;     // Tokyo
+                default: return 0;
+            }
+        }
 
         private static void ApplyCare(CropData crop)
         {
@@ -167,8 +212,11 @@ namespace FarmQuest.Editor
                 seed.displayName = crop.displayName + " Seeds";
                 seed.category = ItemCategory.Seed;
                 seed.maxStack = 99;
-                seed.buyPrice = crop.seedPrice;
+                seed.buyPrice = crop.isPremium ? 0 : crop.seedPrice; // premium seeds: gems only
                 seed.cropId = crop.cropId;
+                seed.tier = crop.isPremium ? ItemTier.Premium : ItemTier.Basic;
+                seed.gemPrice = 0; // premium seed packs are sold via CropData.gemSeedPrice
+                seed.unlockCityIndex = PremiumUnlockCity(crop.cropId);
                 SaveAsset(seed, $"{Root}/Item_seed_{crop.cropId}.asset");
                 list.Add(seed);
 
@@ -178,6 +226,7 @@ namespace FarmQuest.Editor
                 harvested.category = ItemCategory.Crop;
                 harvested.maxStack = 99;
                 harvested.sellPrice = crop.sellPrice;
+                harvested.tier = crop.isPremium ? ItemTier.Premium : ItemTier.Basic; // orders skip Premium
                 SaveAsset(harvested, $"{Root}/Item_crop_{crop.cropId}.asset");
                 list.Add(harvested);
             }
@@ -187,7 +236,10 @@ namespace FarmQuest.Editor
             compost.displayName = "Compost";
             compost.category = ItemCategory.Compost;
             compost.maxStack = 99;
+            compost.displayName = "Organic Compost";
             compost.buyPrice = 8;
+            compost.effect = ConsumableEffect.Compost;
+            compost.benefit = "Healthier plants: raises harvest quality.";
             SaveAsset(compost, $"{Root}/Item_compost.asset");
             list.Add(compost);
 
@@ -196,17 +248,25 @@ namespace FarmQuest.Editor
             fertilizer.displayName = "Fertilizer";
             fertilizer.category = ItemCategory.Fertilizer;
             fertilizer.maxStack = 99;
+            fertilizer.displayName = "Basic Fertilizer";
             fertilizer.buyPrice = 15;
+            fertilizer.effect = ConsumableEffect.Fertilizer;
+            fertilizer.benefit = "Feeds crops that need fertilizer (full harvest) and raises quality.";
             SaveAsset(fertilizer, $"{Root}/Item_fertilizer.asset");
             list.Add(fertilizer);
 
             // Crop care supplies (world-tour update).
-            var supplies = new (string id, string name, int price)[]
+            // Tiers: Basic = coins, Advanced = coins or gems, Premium = gems (or free rewards).
+            var supplies = new (string id, string name, int price, int gems, ItemTier tier, ConsumableEffect effect, float value, int city, string benefit)[]
             {
-                ("pesticide",          "Pest Spray",         12),
-                ("nutrient_nitrogen",  "Nitrogen Nutrient",  10),
-                ("nutrient_potassium", "Potassium Nutrient", 12),
-                ("nutrient_calcium",   "Calcium Nutrient",   14),
+                ("pesticide",          "Pest Control Spray", 12, 0, ItemTier.Basic, ConsumableEffect.PestSpray, 0, 0, "Clears a pest attack so the harvest is saved."),
+                ("nutrient_nitrogen",  "Nitrogen Nutrient",  10, 0, ItemTier.Basic, ConsumableEffect.None, 0, 0, "For crops that want nitrogen: +15% harvest."),
+                ("nutrient_potassium", "Potassium Nutrient", 12, 0, ItemTier.Basic, ConsumableEffect.None, 0, 0, "For crops that want potassium: +15% harvest."),
+                ("nutrient_calcium",   "Calcium Nutrient",   14, 0, ItemTier.Basic, ConsumableEffect.None, 0, 0, "For crops that want calcium: +15% harvest."),
+                ("liquid_nutrient",    "Liquid Nutrients",   45, 4, ItemTier.Advanced, ConsumableEffect.LiquidNutrient, 0.10f, 1, "Works for any crop's nutrient need, plus +10% harvest."),
+                ("premium_fertilizer", "Premium Fertilizer", 60, 5, ItemTier.Advanced, ConsumableEffect.PremiumFertilizer, 0.10f, 2, "Fertilizes and cuts 10% off the growth timer."),
+                ("growth_booster",     "Growth Booster",      0, 10, ItemTier.Premium, ConsumableEffect.GrowthBooster, 0.25f, 0, "Instantly removes up to 25% of a crop's growth timer."),
+                ("super_compost",      "Super Compost",       0, 15, ItemTier.Premium, ConsumableEffect.SuperCompost, 0, 0, "Compost + fertilizer + nutrient + pest cure in one."),
             };
             foreach (var d in supplies)
             {
@@ -216,6 +276,12 @@ namespace FarmQuest.Editor
                 item.category = ItemCategory.Fertilizer;
                 item.maxStack = 99;
                 item.buyPrice = d.price;
+                item.gemPrice = d.gems;
+                item.tier = d.tier;
+                item.effect = d.effect;
+                item.effectValue = d.value;
+                item.unlockCityIndex = d.city;
+                item.benefit = d.benefit;
                 SaveAsset(item, $"{Root}/Item_{d.id}.asset");
                 list.Add(item);
             }
@@ -589,7 +655,39 @@ namespace FarmQuest.Editor
                 ("sign",       "Farm Sign",     "Signs",    8,  40),
                 ("bench",      "Wooden Bench",  "Furniture",14, 150),
                 ("birdhouse",  "Birdhouse",     "Wildlife", 16, 200),
+                ("white_fence", "White Picket Fence", "Fences", 1, 60),
+                ("garden_path", "Garden Path",   "Paths",    1,  40),
+                ("windmill",    "Windmill",      "Landmarks",5, 600),
             };
+            // Premium cosmetics (gems) and country-themed packs unlocked on the world tour.
+            // Purely visual: no gameplay advantage.
+            var premiumDecor = new (string id, string name, string category, int coins, int gems, string country)[]
+            {
+                ("fountain",        "Water Fountain",        "Landmarks", 0, 40, ""),
+                ("golden_scarecrow","Golden Scarecrow",      "Crop Decor",0, 25, ""),
+                ("flower_arch",     "Flower Arch",           "Flowers",   900, 20, ""),
+                ("truck_art_cart",  "Truck-Art Cart",        "Pakistan",  1200, 30, "pakistan"),
+                ("lantern_string",  "Festival Lanterns",     "India",     1500, 30, "india"),
+                ("japanese_house",  "Japanese Farmhouse",    "Japan",     0, 120, "japan"),
+                ("torii_gate",      "Torii Garden Gate",     "Japan",     0, 60, "japan"),
+                ("koi_pond",        "Koi Garden Pond",       "Japan",     4000, 50, "japan"),
+                ("pagoda_lamp",     "Pagoda Lamp",           "China",     2500, 30, "china"),
+                ("italian_villa",   "Tuscan Villa Farmhouse","Italy",     0, 150, "italy"),
+                ("red_barn",        "Classic Red Barn",      "USA",       8000, 80, "usa"),
+            };
+            foreach (var d in premiumDecor)
+            {
+                var decor = ScriptableObject.CreateInstance<DecorData>();
+                decor.decorId = d.id;
+                decor.displayName = d.name;
+                decor.category = d.category;
+                decor.unlockLevel = 1;
+                decor.cost = d.coins;
+                decor.gemPrice = d.gems;
+                decor.requiredCountryId = d.country;
+                SaveAsset(decor, $"{Root}/Decor_{d.id}.asset");
+                db.decorations.Add(decor);
+            }
             foreach (var d in decorDefs)
             {
                 var decor = ScriptableObject.CreateInstance<DecorData>();
@@ -614,6 +712,8 @@ namespace FarmQuest.Editor
             var equipmentDefs = new (string id, string name, EquipmentType type, int level, int cost,
                 string desc, int radius, float speed, float waterInterval, int waterCount)[]
             {
+                ("greenhouse",     "Greenhouse",         EquipmentType.Greenhouse, 8, 6000,  "Crops grow 15% faster and ignore seasons.", 0, 1.18f, 0, 0),
+                ("fertilizer_machine", "Fertilizer Machine", EquipmentType.FertilizerMachine, 10, 4000, "Feeds crops that need fertilizer, from your bag.", 0, 0, 0, 0),
                 ("small_tractor",  "Small Tractor",      EquipmentType.Tractor,    15, 2500,  "Drive it! Plows a 3x3 area.",      1, 1.0f, 0,   0),
                 ("seeder",         "Seeder",             EquipmentType.Seeder,     15, 1200,  "Unlocks tractor Plant mode.",      0, 0,    0,   0),
                 ("sprayer",        "Sprayer",            EquipmentType.Sprayer,    16, 900,   "Unlocks tractor Fertilize mode.",  0, 0,    0,   0),
@@ -639,6 +739,7 @@ namespace FarmQuest.Editor
                 eq.speedMultiplier = d.speed;
                 eq.waterIntervalSeconds = d.waterInterval;
                 eq.waterCount = d.waterCount;
+                eq.gemPrice = EquipmentGemPrice(d.id);
                 SaveAsset(eq, $"{Root}/Equipment_{d.id}.asset");
                 db.equipment.Add(eq);
             }
@@ -979,7 +1080,8 @@ namespace FarmQuest.Editor
                 var country = new CountryDef
                 {
                     countryId = c.id, displayName = c.name,
-                    completionBonusCoins = c.bonus, completionBonusXp = c.xp
+                    completionBonusCoins = c.bonus, completionBonusXp = c.xp,
+                    completionBonusGems = 10 + 5 * world.countries.Count
                 };
                 foreach (var spec in c.cities)
                     country.cities.Add(BuildCity(spec, level++));
@@ -1024,6 +1126,68 @@ namespace FarmQuest.Editor
             city.rewardItems.Add(new CityRewardItem { itemId = "fertilizer", count = 2 + level / 4 });
             city.rewardItems.Add(new CityRewardItem { itemId = "pesticide", count = 2 + level / 4 });
             return city;
+        }
+
+        private static RewardContents R(long coins = 0, long gems = 0, string items = "", string decor = "", string equipment = "")
+        {
+            var r = new RewardContents { coins = coins, gems = gems };
+            foreach (var code in items.Split(';'))
+            {
+                if (string.IsNullOrWhiteSpace(code)) continue;
+                var p = code.Split(':');
+                r.items.Add(new ItemGrant { itemId = p[0], count = int.Parse(p[1]) });
+            }
+            foreach (var d in decor.Split(';')) if (!string.IsNullOrWhiteSpace(d)) r.decorIds.Add(d);
+            foreach (var e in equipment.Split(';')) if (!string.IsNullOrWhiteSpace(e)) r.equipmentIds.Add(e);
+            return r;
+        }
+
+        private static void GenerateStoreCatalog()
+        {
+            var c = ScriptableObject.CreateInstance<StoreCatalog>();
+            const string P = "com.ahkstudios.farmquest.";
+            // Prices are illustrative fallbacks; the store's localized price is shown at runtime.
+            c.bundles = new List<StoreBundle>
+            {
+                new StoreBundle { productId = P + "coins_5000", title = "Starter Coins", fallbackPriceLabel = "$0.99",
+                    description = "5,000 Farm Coins.", contents = R(coins: 5000) },
+                new StoreBundle { productId = P + "gems_100", title = "Gem Pack", fallbackPriceLabel = "$1.99",
+                    description = "100 Farm Gems.", contents = R(gems: 100) },
+                new StoreBundle { productId = P + "gems_300", title = "Big Gem Pack", fallbackPriceLabel = "$4.99",
+                    description = "300 Farm Gems (best value).", contents = R(gems: 300) },
+                new StoreBundle { productId = P + "farming_kit", title = "Farming Kit", fallbackPriceLabel = "$2.99",
+                    description = "Seeds, compost, fertilizer and boosters.",
+                    contents = R(items: "seed_tomato:10;seed_potato:10;seed_wheat:10;compost:10;fertilizer:10;pesticide:5;growth_booster:3;seed_golden_tomato:3") },
+                new StoreBundle { productId = P + "farmers_pack", title = "Farmer's Pack", fallbackPriceLabel = "$4.99", consumable = false,
+                    description = "One time: a sprinkler, 10,000 coins, 150 gems and decorations.",
+                    contents = R(coins: 10000, gems: 150, decor: "windmill;fountain;white_fence", equipment: "sprinkler") },
+                new StoreBundle { productId = P + "japan_garden_pack", title = "Japanese Garden Pack", fallbackPriceLabel = "$1.99",
+                    consumable = false, requiredCountryId = "japan",
+                    description = "Japanese farmhouse, torii gate and koi pond (cosmetic).",
+                    contents = R(decor: "japanese_house;torii_gate;koi_pond") },
+            };
+            // 7-day calendar. Missed days pause; nothing is lost.
+            c.loginCalendar = new List<RewardContents>
+            {
+                R(coins: 100),
+                R(items: "fertilizer:2;compost:2"),
+                R(coins: 200),
+                R(items: "pesticide:2;liquid_nutrient:1"),
+                R(coins: 300, items: "premium_fertilizer:1"),
+                R(gems: 5, items: "growth_booster:1"),
+                R(gems: 10, items: "seed_golden_tomato:3"),
+            };
+            c.dailyFreeSeeds = 3;
+            c.weeklyChallenges = new List<WeeklyChallengeDef>
+            {
+                new WeeklyChallengeDef { challengeId = "harvest_200", title = "Harvest 200 crops", type = ChallengeType.HarvestCrops, target = 200, reward = R(coins: 1000, gems: 10) },
+                new WeeklyChallengeDef { challengeId = "orders_5", title = "Deliver 5 orders", type = ChallengeType.FulfillOrders, target = 5, reward = R(gems: 10, items: "super_compost:1") },
+                new WeeklyChallengeDef { challengeId = "sales_3000", title = "Earn 3,000 coins from sales", type = ChallengeType.EarnFromSales, target = 3000, reward = R(coins: 500, gems: 5) },
+                new WeeklyChallengeDef { challengeId = "care_40", title = "Care for crops 40 times", type = ChallengeType.CareActions, target = 40, reward = R(gems: 5, items: "growth_booster:2") },
+                new WeeklyChallengeDef { challengeId = "city_1", title = "Complete a city", type = ChallengeType.CompleteCities, target = 1, reward = R(gems: 15, items: "seed_golden_tomato:3") },
+            };
+            c.rescueSeeds = 5;
+            SaveAsset(c, $"{Root}/StoreCatalog.asset");
         }
 
         private static void GenerateFarmUpgrades()

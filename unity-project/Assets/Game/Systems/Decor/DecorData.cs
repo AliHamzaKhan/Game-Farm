@@ -11,6 +11,10 @@ namespace FarmQuest.Systems.Decor
         public string category = "Fences";
         public int unlockLevel = 8;
         public int cost = 50;
+        [Tooltip("Gem price; 0 = coins only. cost 0 + gemPrice > 0 = premium cosmetic.")]
+        public int gemPrice;
+        [Tooltip("Country id that unlocks it on the world tour (empty = always).")]
+        public string requiredCountryId = "";
         public Sprite icon;
         public GameObject prefab;
     }

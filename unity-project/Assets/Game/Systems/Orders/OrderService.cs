@@ -96,7 +96,9 @@ namespace FarmQuest.Systems.Orders
         {
             var list = new List<ItemData>();
             foreach (var item in _database.items)
-                if (item != null && item.sellPrice > 0 && item.category != ItemCategory.Seed)
+                // Premium crops never appear in orders: nobody should need to buy anything to deliver.
+                if (item != null && item.sellPrice > 0 && item.category != ItemCategory.Seed &&
+                    item.tier != ItemTier.Premium)
                     list.Add(item);
             return list;
         }
@@ -158,6 +160,7 @@ namespace FarmQuest.Systems.Orders
             economy.AddXp(order.RewardXp, "order");
             _orders.Remove(order);
             GameEvents.RaiseOrdersChanged();
+            GameEvents.RaiseOrderFulfilled(order.RewardCoins);
             GameEvents.RaiseToast(order.IsPremium
                 ? $"⭐ Premium delivery! +{order.RewardCoins} coins!"
                 : $"🚚 Delivered! +{order.RewardCoins} coins!");

@@ -46,6 +46,7 @@ namespace FarmQuest.Core.Services
         public VillageDatabase villageDatabase;
         public WorldData worldData;
         public FarmUpgradeDatabase farmUpgradeDatabase;
+        public StoreCatalog storeCatalog;
 
         [Header("Phase 2 data pools (or leave empty to load from Resources/Data)")]
         public List<MissionData> missionPool = new List<MissionData>();
@@ -116,8 +117,9 @@ namespace FarmQuest.Core.Services
             var world = new WorldProgressionService(worldData);
             ServiceLocator.Register(world);
             pricing.ItemSellMultiplier = world.GetSellMultiplier;
-            ServiceLocator.Register(new RewardedAdService(httpConfig, time,
-                new StubAdProvider())); // Phase 6: swap for real provider
+            var rewardedAds = new RewardedAdService(httpConfig, time,
+                new StubAdProvider()); // Phase 6: swap for real provider
+            ServiceLocator.Register(rewardedAds);
 
             // ---- Phase 2: meta progression ----
             if (missionPool.Count == 0)
@@ -177,6 +179,15 @@ namespace FarmQuest.Core.Services
             ServiceLocator.Register(liveEvents);
             // Swap StubAdProvider for UnityAdsProvider once the Ads package is installed (see its docs).
             ServiceLocator.Register(new CloudSaveService(new HttpCloudSaveProvider()));
+            // ---- Free-to-play: store, daily rewards, natural-moment ad offers ----
+            if (storeCatalog == null) storeCatalog = Resources.Load<StoreCatalog>("Data/StoreCatalog");
+            if (storeCatalog == null) Debug.LogError("[Bootstrapper] StoreCatalog missing. Run FarmQuest/Generate/All Game Data.");
+            // Editor: purchases complete instantly for testing. Builds: no store until a real
+            // IIapProvider (Unity IAP) is plugged in here, so paid items can't be granted by mistake.
+            ServiceLocator.Register(new Systems.Store.StoreService(storeCatalog,
+                new Systems.Store.StubIapProvider(Application.isEditor)));
+            ServiceLocator.Register(new Systems.Store.DailyRewardService(storeCatalog, time));
+            ServiceLocator.Register(new Systems.Store.AdOfferService(rewardedAds, httpConfig));
             var analytics = new AnalyticsService(new HttpAnalyticsProvider());
             ServiceLocator.Register(analytics);
 

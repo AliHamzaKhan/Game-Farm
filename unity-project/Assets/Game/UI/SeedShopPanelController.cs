@@ -34,7 +34,10 @@ namespace FarmQuest.UI
 
             foreach (var crop in db.crops)
             {
-                if (!Systems.World.WorldProgressionService.IsCropAvailable(crop)) continue;
+                // Premium crops show up here once the player owns their seeds (Store / rewards).
+                bool ownsPremium = crop.isPremium &&
+                    ServiceLocator.Get<Systems.Inventory.InventoryService>().GetCount("seed_" + crop.cropId) > 0;
+                if (crop.isPremium ? !ownsPremium : !Systems.World.WorldProgressionService.IsCropAvailable(crop)) continue;
                 var button = Instantiate(seedButtonPrefab, listContent);
                 var label = button.GetComponentInChildren<Text>();
                 int owned = ServiceLocator.Get<Systems.Inventory.InventoryService>().GetCount("seed_" + crop.cropId);

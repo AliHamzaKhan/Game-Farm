@@ -50,6 +50,31 @@ namespace FarmQuest.Systems.Decor
             return true;
         }
 
+        /// <summary>Buys a decoration with gems (premium cosmetics).</summary>
+        public bool BuyDecorWithGems(string decorId)
+        {
+            var data = _database.GetDecor(decorId);
+            if (data == null || data.gemPrice <= 0) return false;
+            if (!ServiceLocator.Get<EconomyService>().TrySpendGems(data.gemPrice))
+            {
+                GameEvents.RaiseToast($"Need {data.gemPrice} gems.");
+                return false;
+            }
+            Grant(decorId);
+            GameEvents.RaiseToast($"{data.displayName} — tap Place to put it down!");
+            return true;
+        }
+
+        /// <summary>Adds a decoration without payment (bundles, rewards).</summary>
+        public void Grant(string decorId, int count = 1)
+        {
+            if (_database.GetDecor(decorId) == null || count <= 0) return;
+            _owned[decorId] = OwnedCount(decorId) + count;
+            GameEvents.RaiseDecorChanged();
+        }
+
+        public IEnumerable<DecorData> AllDecor() => _database.decorations;
+
         public bool PlaceDecor(string decorId, float x, float z, float rotY = 0f)
         {
             if (OwnedCount(decorId) <= 0) return false;

@@ -42,7 +42,10 @@ namespace FarmQuest.UI
             ServiceLocator.TryGet(out WorldProgressionService world);
             var done = world?.GetCityLevel(index);
             var next = world?.GetCityLevel(index + 1);
-            string reward = done != null ? $"+{done.City.rewardCoins:N0} coins, +{done.City.rewardXp} XP" : "";
+            string reward = done != null
+                ? $"+{done.City.rewardCoins:N0} coins, +{done.City.rewardXp} XP" +
+                  (done.City.rewardGems > 0 ? $", +{done.City.rewardGems} gems" : "")
+                : "";
             string unlocked = next != null ? $"\n\nNext stop: {next.CityName}, {next.CountryName}" : "";
             if (next != null && next.Lap == 0 && next.City.introducedCropIds.Count > 0)
             {

@@ -50,6 +50,8 @@ namespace FarmQuest.Data
         public List<CityPriceModifier> prices = new List<CityPriceModifier>();
         public long rewardCoins = 500;
         public int rewardXp = 100;
+        [Tooltip("Free premium currency for finishing the city.")]
+        public int rewardGems = 2;
         public List<CityRewardItem> rewardItems = new List<CityRewardItem>();
     }
 
@@ -61,6 +63,7 @@ namespace FarmQuest.Data
         public List<CityDef> cities = new List<CityDef>();
         public long completionBonusCoins = 2000;
         public int completionBonusXp = 500;
+        public int completionBonusGems = 10;
     }
 
     /// <summary>

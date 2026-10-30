@@ -10,7 +10,7 @@ namespace FarmQuest.Core.Save
     /// </summary>
     public class SaveService
     {
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
         private const string FileName = "farmquest_save.json";
 
         private readonly string _path;

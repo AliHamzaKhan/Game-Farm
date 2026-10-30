@@ -19,10 +19,14 @@ namespace FarmQuest.Systems.Economy
         /// <summary>Global sell-price multiplier (e.g. Market Day +20%). Phase 5.</summary>
         public float SellPriceMultiplier { get; set; } = 1f;
 
+        /// <summary>Per-item multiplier from the current city's market (world tour). Null = 1.</summary>
+        public System.Func<string, float> ItemSellMultiplier { get; set; }
+
         public int GetBuyPrice(ItemData item) => item.buyPrice;
         public int GetSellPrice(ItemData item, QualityGrade quality)
         {
-            float mult = Farming.CropInstance.QualityPriceMultiplier(quality) * SellPriceMultiplier;
+            float city = ItemSellMultiplier != null ? ItemSellMultiplier(item.itemId) : 1f;
+            float mult = Farming.CropInstance.QualityPriceMultiplier(quality) * SellPriceMultiplier * city;
             return UnityEngine.Mathf.RoundToInt(item.sellPrice * mult);
         }
     }
@@ -60,6 +64,13 @@ namespace FarmQuest.Systems.Economy
         {
             if (_pricing is FixedPriceStrategy fixed_)
                 fixed_.SellPriceMultiplier = _marketDayMultiplier * _eventMultiplier;
+        }
+
+        /// <summary>Current sell price for one unit at a quality (includes city and event multipliers).</summary>
+        public int GetSellPrice(string itemId, QualityGrade quality = QualityGrade.Normal)
+        {
+            var item = _database.GetItem(itemId);
+            return item == null ? 0 : _pricing.GetSellPrice(item, quality);
         }
 
         public bool BuySeed(string cropId, int quantity)
@@ -122,6 +133,7 @@ namespace FarmQuest.Systems.Economy
                 economy.AddCoins(earned, "sell");
                 economy.AddXp(System.Math.Max(1, earned / 10), "sell");
                 GameEvents.RaiseItemsSold(itemId, quantity - remaining);
+                GameEvents.RaiseSaleCompleted(itemId, quantity - remaining, earned);
             }
             return earned;
         }

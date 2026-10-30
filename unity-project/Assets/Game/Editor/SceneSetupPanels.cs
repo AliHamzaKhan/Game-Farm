@@ -140,7 +140,53 @@ namespace FarmQuest.Editor
             tractorCtrl.harvestButton = AddButton(tractor.transform, "Harv", "Harvest", new Vector2(280, 80), new Vector2(150, -400));
             tractorCtrl.exitButton = AddButton(tractor.transform, "Exit", "Get Off", new Vector2(280, 80), new Vector2(0, -520));
 
+            // ---- World tour: map / city contracts / farm upgrades ----
+            var worldPanel = CreateListPanel<WorldMapPanelController>(canvas, "WorldPanel", "World Tour", rowPrefab, out var worldCtrl);
+            worldCtrl.headerText = AddText(worldPanel.transform, "Header", "", 28, new Vector2(0, 490));
+            ((RectTransform)worldCtrl.headerText.transform).sizeDelta = new Vector2(860, 100);
+            worldCtrl.mapTabButton = AddButton(worldPanel.transform, "MapTab", "Map", new Vector2(260, 80), new Vector2(-280, -580));
+            worldCtrl.cityTabButton = AddButton(worldPanel.transform, "CityTab", "City", new Vector2(260, 80), new Vector2(0, -580));
+            worldCtrl.farmTabButton = AddButton(worldPanel.transform, "FarmTab", "Farm", new Vector2(260, 80), new Vector2(280, -580));
+            hud.worldPanel = worldPanel;
+
             BuildBottomNav(canvasGo, hud);
+            BuildCelebration(canvas);
+        }
+
+        private static void BuildCelebration(Transform canvas)
+        {
+            var go = new GameObject("Celebration");
+            go.transform.SetParent(canvas, false);
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            var ctrl = go.AddComponent<CelebrationController>();
+
+            var overlay = new GameObject("Overlay");
+            overlay.transform.SetParent(go.transform, false);
+            var ort = overlay.AddComponent<RectTransform>();
+            ort.anchorMin = Vector2.zero; ort.anchorMax = Vector2.one;
+            ort.offsetMin = Vector2.zero; ort.offsetMax = Vector2.zero;
+            overlay.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.7f);
+
+            var card = new GameObject("Card");
+            card.transform.SetParent(overlay.transform, false);
+            var crt = card.AddComponent<RectTransform>();
+            crt.anchorMin = new Vector2(0.5f, 0.5f); crt.anchorMax = new Vector2(0.5f, 0.5f);
+            crt.sizeDelta = new Vector2(860, 760);
+            card.AddComponent<Image>().color = new Color(0.98f, 0.82f, 0.3f);
+
+            ctrl.root = overlay;
+            ctrl.card = crt;
+            ctrl.titleText = AddText(card.transform, "Title", "", 54, new Vector2(0, 250));
+            ctrl.titleText.color = new Color(0.25f, 0.15f, 0.05f);
+            ctrl.titleText.fontStyle = FontStyle.Bold;
+            ((RectTransform)ctrl.titleText.transform).sizeDelta = new Vector2(800, 140);
+            ctrl.bodyText = AddText(card.transform, "Body", "", 36, new Vector2(0, 0));
+            ctrl.bodyText.color = new Color(0.25f, 0.15f, 0.05f);
+            ((RectTransform)ctrl.bodyText.transform).sizeDelta = new Vector2(780, 340);
+            ctrl.continueButton = AddButton(card.transform, "Continue", "Continue", new Vector2(360, 100), new Vector2(0, -280));
+            overlay.SetActive(false);
         }
 
         // ---------------- panel scaffolding ----------------
@@ -255,6 +301,7 @@ namespace FarmQuest.Editor
 
             var items = new (string label, System.Action action)[]
             {
+                ("World", hud.ToggleWorld),
                 ("Market", hud.ToggleMarket), ("Seeds", hud.ToggleSeedShop), ("Bag", hud.ToggleInventory),
                 ("Quests", hud.ToggleMissions), ("Orders", hud.ToggleOrders), ("Barn", hud.ToggleAnimals),
                 ("Factory", hud.ToggleProduction), ("Village", hud.ToggleVillage), ("Equip", hud.ToggleEquipment),

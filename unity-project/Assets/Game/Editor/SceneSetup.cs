@@ -134,6 +134,8 @@ namespace FarmQuest.Editor
             hud.coinsText = MakeText(hudGo.transform, "Coins", "🪙 100", 44, new Vector2(-20, -30), TextAnchor.UpperRight);
             hud.levelText = MakeText(hudGo.transform, "Level", "Lv 1", 40, new Vector2(20, -30), TextAnchor.UpperLeft);
             hud.clockText = MakeText(hudGo.transform, "Clock", "", 36, new Vector2(0, -30), TextAnchor.UpperCenter);
+            hud.cityText = MakeText(hudGo.transform, "City", "", 34, new Vector2(0, -95), TextAnchor.UpperCenter);
+            ((RectTransform)hud.cityText.transform).sizeDelta = new Vector2(1000, 60);
 
             // Plot panel (the core interaction UI).
             var plotGo = new GameObject("PlotPanel");
@@ -143,17 +145,32 @@ namespace FarmQuest.Editor
             panelImg.color = new Color(0.12f, 0.12f, 0.16f, 0.92f);
             var rt = plotGo.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(1, 0.5f); rt.anchorMax = new Vector2(1, 0.5f);
-            rt.anchoredPosition = new Vector2(-260, 0); rt.sizeDelta = new Vector2(480, 900);
-            plot.titleText = MakeText(plotGo.transform, "Title", "Empty Plot", 40, Vector2.zero, TextAnchor.MiddleCenter, 0);
-            plot.clearButton = MakeButton(plotGo.transform, "Clear", "Clear 🌿", 1);
-            plot.digButton = MakeButton(plotGo.transform, "Dig", "Dig ⛏️", 2);
-            plot.prepareButton = MakeButton(plotGo.transform, "Prepare", "Prepare 🌱", 3);
-            plot.plantButton = MakeButton(plotGo.transform, "Plant", "Plant 🌾", 4);
-            plot.waterButton = MakeButton(plotGo.transform, "Water", "Water 💧", 5);
-            plot.compostButton = MakeButton(plotGo.transform, "Compost", "Compost ♻️", 6);
-            plot.nutrientButton = MakeButton(plotGo.transform, "Nutrient", "Feed ✨", 7);
-            plot.harvestButton = MakeButton(plotGo.transform, "Harvest", "Harvest 🧺", 8);
-            plot.closeButton = MakeButton(plotGo.transform, "Close", "Close ✖️", 9);
+            rt.anchoredPosition = new Vector2(-280, 120); rt.sizeDelta = new Vector2(540, 1340);
+            plot.titleText = MakeText(plotGo.transform, "Title", "Empty Plot", 40, new Vector2(0, -20), TextAnchor.UpperCenter, 0);
+            ((RectTransform)plot.titleText.transform).sizeDelta = new Vector2(500, 110);
+            plot.infoText = MakeText(plotGo.transform, "Info", "", 28, new Vector2(0, -135), TextAnchor.UpperLeft, 0);
+            ((RectTransform)plot.infoText.transform).sizeDelta = new Vector2(500, 250);
+            // Two-column action grid; controllers hide what doesn't apply right now.
+            plot.clearButton = MakeGridButton(plotGo.transform, "Clear", "Clear", 0, 0);
+            plot.digButton = MakeGridButton(plotGo.transform, "Dig", "Dig", 1, 0);
+            plot.prepareButton = MakeGridButton(plotGo.transform, "Prepare", "Prepare", 0, 1);
+            plot.plantButton = MakeGridButton(plotGo.transform, "Plant", "Plant", 1, 1);
+            plot.waterButton = MakeGridButton(plotGo.transform, "Water", "Water", 0, 2);
+            plot.nutrientButton = MakeGridButton(plotGo.transform, "Fertilize", "Fertilize", 1, 2);
+            plot.specialNutrientButton = MakeGridButton(plotGo.transform, "SpecialNutrient", "Nutrient", 0, 3);
+            plot.sprayButton = MakeGridButton(plotGo.transform, "Spray", "Spray pests", 1, 3);
+            plot.pruneButton = MakeGridButton(plotGo.transform, "Prune", "Prune", 0, 4);
+            plot.compostButton = MakeGridButton(plotGo.transform, "Compost", "Compost", 1, 4);
+            plot.harvestButton = MakeGridButton(plotGo.transform, "Harvest", "Harvest", 0, 5);
+            plot.adOfferText = MakeText(plotGo.transform, "AdOffer", "", 26, new Vector2(0, -900), TextAnchor.UpperCenter, 0);
+            ((RectTransform)plot.adOfferText.transform).sizeDelta = new Vector2(500, 90);
+            var adColor = new Color(0.3f, 0.55f, 0.85f);
+            plot.adSpeedupButton = MakeGridButton(plotGo.transform, "AdSpeed", "Ad: faster", 0, 7, adColor);
+            plot.adStageButton = MakeGridButton(plotGo.transform, "AdStage", "Ad: next stage", 1, 7, adColor);
+            plot.adFinishButton = MakeGridButton(plotGo.transform, "AdFinish", "Ad: finish now", 0, 8, adColor);
+            plot.adYieldButton = MakeGridButton(plotGo.transform, "AdYield", "Ad: +50% crop", 1, 8, adColor);
+            plot.closeButton = MakeGridButton(plotGo.transform, "Close", "Close", 0, 9);
+            ((RectTransform)plot.closeButton.transform).anchoredPosition = new Vector2(0, -1260);
             plotGo.SetActive(false);
 
             // All game panels + bottom nav (audit fix).
@@ -196,6 +213,18 @@ namespace FarmQuest.Editor
             text.color = Color.white;
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             return text;
+        }
+
+        private static Button MakeGridButton(Transform parent, string name, string label, int col, int row, Color? color = null)
+        {
+            var b = MakeButton(parent, name, label, 0);
+            var rt = (RectTransform)b.transform;
+            rt.sizeDelta = new Vector2(240, 72);
+            rt.anchoredPosition = new Vector2(col == 0 ? -127 : 127, -420 - row * 84);
+            if (color.HasValue) b.GetComponent<Image>().color = color.Value;
+            var text = b.GetComponentInChildren<Text>();
+            if (text != null) text.fontSize = 30;
+            return b;
         }
 
         private static Button MakeButton(Transform parent, string name, string label, int row)

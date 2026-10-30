@@ -32,6 +32,9 @@ namespace FarmQuest.Core.Save
         public WeatherSaveData weather = new WeatherSaveData();
         public ParentSettingsSave parent = new ParentSettingsSave();
         public PlaytimeSaveData playtime = new PlaytimeSaveData();
+        public WorldSaveData world = new WorldSaveData();
+        public FarmUpgradeSaveData farmUpgrades = new FarmUpgradeSaveData();
+        public AdSaveData ads = new AdSaveData();
         /// <summary>Last write time (cloud conflict resolution). Phase 6.</summary>
         public long updatedAtTicks;
         /// <summary>Random per-install id for cloud save. Not PII. Phase 6.</summary>
@@ -63,6 +66,15 @@ namespace FarmQuest.Core.Save
         public float growthTimeMultiplier = 1f;
         public bool compostPrepared;
         public bool nutrientPrepared;
+        // ---- v2: crop care (missing in v1 saves -> these defaults) ----
+        public long lastWateredTicks;
+        public double dryPenaltySeconds;
+        public double bonusGrowthSeconds;
+        public bool specialNutrientApplied;
+        public bool pruned;
+        public float pestAtProgress = -1f;
+        public bool pestSprayed;
+        public float bonusYieldMultiplier = 1f;
     }
 
     [Serializable]
@@ -124,6 +136,9 @@ namespace FarmQuest.Core.Save
         public int missionsCompleted;
         public int regionsUnlocked;
         public int highestStoryChapter;
+        public int citiesCompleted;
+        public int countriesCompleted;
+        public int careActions;
     }
 
     [Serializable]
@@ -303,5 +318,43 @@ namespace FarmQuest.Core.Save
     {
         public float dailySeconds;
         public string dayStamp = "";
+    }
+
+    // ---------- v2: world tour, farm upgrades, rewarded-ad history ----------
+
+    [Serializable]
+    public class WorldSaveData
+    {
+        /// <summary>Global index of the city being played (0 = first city of the first country).</summary>
+        public int currentCityIndex;
+        /// <summary>Id of that city when saved; used to detect edited world data.</summary>
+        public string currentCityId = "";
+        /// <summary>Progress per objective of the current city, same order as the city's objectives.</summary>
+        public List<long> objectiveProgress = new List<long>();
+        public int citiesCompleted;
+        public int countriesCompleted;
+    }
+
+    [Serializable]
+    public class FarmUpgradeLevelSave
+    {
+        public string upgradeId;
+        public int level;
+    }
+
+    [Serializable]
+    public class FarmUpgradeSaveData
+    {
+        public List<FarmUpgradeLevelSave> levels = new List<FarmUpgradeLevelSave>();
+    }
+
+    [Serializable]
+    public class AdSaveData
+    {
+        public string dayStamp = "";
+        public int adsWatchedToday;
+        public float secondsReducedToday;
+        public int totalAdsWatched;
+        public double totalSecondsAccelerated;
     }
 }

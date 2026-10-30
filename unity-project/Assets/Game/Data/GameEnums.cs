@@ -20,4 +20,25 @@ namespace FarmQuest.Data
     }
 
     public enum WaterState { Dry = 0, Moist = 1, WellWatered = 2 }
+
+    /// <summary>
+    /// Crop lifecycle. Seed..Fruiting span the growth timer (per-crop weights);
+    /// Mature means the timer has finished and the crop can be harvested.
+    /// </summary>
+    public enum GrowthStage { Seed = 0, Sprout = 1, Vegetative = 2, Flowering = 3, Fruiting = 4, Mature = 5 }
+
+    /// <summary>What a crop needs right now, highest priority first in CropInstance.Health.</summary>
+    public enum CropHealth
+    {
+        Healthy = 0,
+        NeedsWater = 1,
+        NeedsFertilizer = 2,
+        NutrientDeficiency = 3,
+        PestAttack = 4,
+        NeedsPruning = 5,
+        ReadyToHarvest = 6
+    }
+
+    /// <summary>Crop-specific nutrient. Each maps to an inventory item "nutrient_&lt;name&gt;".</summary>
+    public enum NutrientType { None = 0, Nitrogen = 1, Potassium = 2, Calcium = 3 }
 }

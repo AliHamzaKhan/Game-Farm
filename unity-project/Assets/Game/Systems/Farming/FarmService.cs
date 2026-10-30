@@ -127,6 +127,21 @@ namespace FarmQuest.Systems.Farming
             }
 
             var crop = new CropInstance(data, _time, _time.UtcNow.Ticks);
+            ServiceLocator.TryGet(out FarmUpgradeService upgrades);
+            if (upgrades != null)
+            {
+                crop.GrowthTimeMultiplier *= upgrades.GrowthTimeMultiplier;
+                crop.BonusYieldMultiplier *= upgrades.YieldMultiplier;
+                if (_rng.NextDouble() < upgrades.SeedSaverChance)
+                {
+                    inventory.Add(seedItemId, 1);
+                    GameEvents.RaiseToast("Seed saved! 🌱");
+                }
+            }
+            // Crop-specific pest attack, decided now so it survives save/load.
+            float pestChance = data.pestChance * (upgrades != null ? upgrades.PestChanceMultiplier : 1f);
+            if (pestChance > 0f && _rng.NextDouble() < pestChance)
+                crop.SchedulePest(0.3f + (float)_rng.NextDouble() * 0.5f);
             if (tile.CompostPrepared) { crop.ApplyCompost(); tile.ClearCompostPrepared(); }
             if (tile.NutrientPrepared) { crop.ApplyNutrient(); tile.ClearNutrientPrepared(); }
             // Phase 5: out-of-season crops grow slower, never blocked.
@@ -135,7 +150,7 @@ namespace FarmQuest.Systems.Farming
                 var current = seasons.CurrentSeason;
                 if (data.preferredSeason != Data.Season.None && data.preferredSeason != current)
                 {
-                    crop.GrowthTimeMultiplier = 2f;
+                    crop.GrowthTimeMultiplier *= 2f;
                     GameEvents.RaiseToast($"{data.displayName} grows slower out of season 🌱");
                 }
             }
@@ -151,8 +166,7 @@ namespace FarmQuest.Systems.Farming
         {
             if (tile == null || !tile.CanWater()) return false;
             tile.Crop.Water();
-            tile.SetWaterState(tile.Crop.WateringsDone >= tile.Crop.Data.waterRequired
-                ? WaterState.WellWatered : WaterState.Moist);
+            tile.SetWaterState(tile.Crop.NeedsWater ? WaterState.Moist : WaterState.WellWatered);
             ServiceLocator.Get<Economy.EconomyService>().AddXp(2, "water");
             GameEvents.RaiseTileChanged(tile);
             GameEvents.RaiseCropWatered();
@@ -202,7 +216,8 @@ namespace FarmQuest.Systems.Farming
             var crop = tile.TakeHarvest();
             var quality = crop.CalculateQuality();
             int baseQty = _rng.Next(crop.Data.harvestMin, crop.Data.harvestMax + 1);
-            int qty = Mathf.Max(1, Mathf.RoundToInt(baseQty * CropInstance.QualityYieldMultiplier(quality)));
+            int qty = Mathf.Max(1, Mathf.RoundToInt(baseQty * CropInstance.QualityYieldMultiplier(quality)
+                * crop.CareYieldMultiplier));
             int xp = crop.Data.xpReward + (int)quality * 2;
 
             var inventory = ServiceLocator.Get<Inventory.InventoryService>();
@@ -210,6 +225,7 @@ namespace FarmQuest.Systems.Farming
 
             ServiceLocator.Get<Economy.EconomyService>().AddXp(xp, "harvest");
             ServiceLocator.Get<Systems.Farming.CropGrowthService>().Untrack(crop);
+            if (crop.HasPests) GameEvents.RaiseToast("Pests ate part of the harvest — spray next time!");
 
             GameEvents.RaiseTileChanged(tile);
             GameEvents.RaiseCropHarvested(crop, qty);
@@ -276,6 +292,14 @@ namespace FarmQuest.Systems.Farming
                     compostApplied = tile.Crop?.CompostApplied ?? false,
                     nutrientApplied = tile.Crop?.NutrientApplied ?? false,
                     growthTimeMultiplier = tile.Crop != null ? tile.Crop.GrowthTimeMultiplier : 1f,
+                    lastWateredTicks = tile.Crop?.LastWateredTicks ?? 0,
+                    dryPenaltySeconds = tile.Crop?.DryPenaltySeconds ?? 0,
+                    bonusGrowthSeconds = tile.Crop?.BonusGrowthSeconds ?? 0,
+                    specialNutrientApplied = tile.Crop?.SpecialNutrientApplied ?? false,
+                    pruned = tile.Crop?.Pruned ?? false,
+                    pestAtProgress = tile.Crop != null ? tile.Crop.PestAtProgress : -1f,
+                    pestSprayed = tile.Crop?.PestSprayed ?? false,
+                    bonusYieldMultiplier = tile.Crop != null ? tile.Crop.BonusYieldMultiplier : 1f,
                     compostPrepared = tile.CompostPrepared,
                     nutrientPrepared = tile.NutrientPrepared
                 });
@@ -306,9 +330,22 @@ namespace FarmQuest.Systems.Farming
                     if (cropData != null)
                     {
                         crop = new CropInstance(cropData, _time, t.plantedAtTicks);
-                        for (int i = 0; i < t.wateringsDone; i++) crop.Water();
-                        if (t.compostApplied) crop.ApplyCompost();
-                        if (t.nutrientApplied) crop.ApplyNutrient();
+                        crop.RestoreCare(new CropCareState
+                        {
+                            wateringsDone = t.wateringsDone,
+                            // Older saves have no watering time: treat as watered at planting.
+                            lastWateredTicks = t.lastWateredTicks != 0 || t.wateringsDone == 0
+                                ? t.lastWateredTicks : t.plantedAtTicks,
+                            dryPenaltySeconds = t.dryPenaltySeconds,
+                            bonusGrowthSeconds = t.bonusGrowthSeconds,
+                            compostApplied = t.compostApplied,
+                            fertilized = t.nutrientApplied,
+                            specialNutrientApplied = t.specialNutrientApplied,
+                            pruned = t.pruned,
+                            pestAtProgress = t.pestAtProgress,
+                            pestSprayed = t.pestSprayed,
+                            bonusYieldMultiplier = t.bonusYieldMultiplier
+                        });
                         crop.GrowthTimeMultiplier = t.growthTimeMultiplier > 0 ? t.growthTimeMultiplier : 1f;
                         growth.Track(crop, tile);
                     }

@@ -1,7 +1,7 @@
 # Farm Quest — Task Tracker
 
 > **Rule:** every task's status lives here. When a task is done, in progress, or pending, update this file.
-> Last updated: 2026-10-09
+> Last updated: 2026-10-30
 
 **Status marks:** ✅ Done · 🔄 In Progress · ⏳ Pending (needs user action) · 📋 Planned (future work)
 
@@ -115,6 +115,24 @@
 | 9.2 | Standing rule: pull → change → push for every change | ✅ Done | Recorded 2026-10-09, followed always |
 | 9.3 | This task tracker created | ✅ Done | `TASKS.md` |
 | 9.4 | This task tracker pushed to repo | ✅ Done | Commit `b4d8819` |
+
+## 10. World Tour Update (countries, cities, crop lifecycle)
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 10.1 | Data-driven world: 8 countries, 36 cities, objectives, city prices, rewards | ✅ Done | `WorldData`, `GenerateWorld()` |
+| 10.2 | `WorldProgressionService`: start Karachi, unlock next city/country, endless laps, save | ✅ Done | Saves right after a city completes |
+| 10.3 | 6-stage lifecycle with per-crop stage weights and timers | ✅ Done | `CropInstance.Stage` |
+| 10.4 | Crop care: water interval, fertilizer, nutrients, pests, pruning, health states | ✅ Done | `CropCareService`, crop-specific |
+| 10.5 | Rewarded ads: -60s, finish stage, finish now, +50% yield, free fertilizer; history saved | ✅ Done | Reward only on confirmed completion |
+| 10.6 | Farm upgrades (growth, yield, pest guard, seed saver) + land expansion UI | ✅ Done | World → Farm tab |
+| 10.7 | UI: World panel (Map/City/Farm), plot care panel, celebrations, HUD city | ✅ Done | Built by Create Test Scenes |
+| 10.8 | Procedural per-stage crop models, need indicator, plant/harvest animations | ✅ Done | `FarmTileView` |
+| 10.9 | Save v2 + migration; city/country/care achievements | ✅ Done | Old saves keep working |
+| 10.10 | EditMode tests: lifecycle, world, ads (26 new) | ✅ Done | Logic tests also run outside Unity |
+| 10.11 | User: re-run Generate All Game Data + Create Test Scenes, run tests, play Karachi | ⏳ Pending | Needs Unity |
+| 10.12 | Weekly challenges, farming statistics screen | 📋 Planned | Not in this update |
+| 10.13 | Balance pass on later-city targets with real playtime | 📋 Planned | Tune in WorldData |
 
 ---
 

@@ -38,6 +38,19 @@ namespace FarmQuest.Systems.Ads
         private string _dayStamp = "";
         private float _lastAdTime = -99999f;
         private float _reductionUsedToday;
+        private int _totalAdsWatched;
+        private double _totalSecondsAccelerated;
+        private bool _showing;
+
+        /// <summary>Crop yield multiplier granted by the "bigger harvest" ad.</summary>
+        public const float YieldBoostMultiplier = 1.5f;
+
+        public int AdsWatchedToday { get { RollDayIfNeeded(); return _adsWatchedToday; } }
+        public int AdsLeftToday => Math.Max(0, _config.MaxRewardedAdsPerDay - AdsWatchedToday);
+        public int TotalAdsWatched => _totalAdsWatched;
+
+        /// <summary>"Finish now" is only offered when this little growth time is left (config: ad_finish_max_remaining_seconds).</summary>
+        public float FinishMaxRemainingSeconds => _config.GetFloat("ad_finish_max_remaining_seconds", 600f);
 
         public RewardedAdService(IRemoteConfigProvider config, ITimeService time, IAdProvider provider)
         {
@@ -60,7 +73,7 @@ namespace FarmQuest.Systems.Ads
         public bool IsRewardedAdAvailable()
         {
             RollDayIfNeeded();
-            if (!_provider.IsReady) return false;
+            if (_showing || _provider == null || !_provider.IsReady) return false;
             if (_adsWatchedToday >= _config.MaxRewardedAdsPerDay) return false;
             if (Time.realtimeSinceStartup - _lastAdTime < _config.RewardedAdCooldownSeconds) return false;
             return true;
@@ -70,15 +83,28 @@ namespace FarmQuest.Systems.Ads
         public void ShowAd(string placement, Action<bool> onComplete)
         {
             if (!IsRewardedAdAvailable()) { onComplete?.Invoke(false); return; }
-            _provider.Show(placement, completed =>
+            _showing = true;
+            try
             {
-                if (completed)
+                _provider.Show(placement, completed =>
                 {
-                    _adsWatchedToday++;
-                    _lastAdTime = Time.realtimeSinceStartup;
-                }
-                onComplete?.Invoke(completed); // reward ONLY on confirmed completion
-            });
+                    _showing = false;
+                    if (completed)
+                    {
+                        _adsWatchedToday++;
+                        _totalAdsWatched++;
+                        _lastAdTime = Time.realtimeSinceStartup;
+                    }
+                    onComplete?.Invoke(completed); // reward ONLY on confirmed completion
+                });
+            }
+            catch (Exception e)
+            {
+                // A crashing SDK must never block gameplay or grant a reward.
+                _showing = false;
+                Debug.LogWarning($"[Ads] Provider failed: {e.Message}");
+                onComplete?.Invoke(false);
+            }
         }
 
         public bool CanReduceTime(float requestedSeconds)
@@ -87,16 +113,64 @@ namespace FarmQuest.Systems.Ads
             return _reductionUsedToday + requestedSeconds <= _config.MaxTimeReductionPerDaySeconds;
         }
 
-        public void ShowCropSpeedupAd(Farming.CropInstance crop, Action<float> onReduced)
+        public void ShowCropSpeedupAd(Farming.CropInstance crop, Action<float> onReduced) =>
+            ShowCropTimeAd(crop, SpeedupSeconds(crop), "crop_speedup", onReduced);
+
+        /// <summary>Completes the crop's current growth stage.</summary>
+        public void ShowCropStageSkipAd(Farming.CropInstance crop, Action<float> onReduced) =>
+            ShowCropTimeAd(crop, crop != null ? crop.SecondsToNextStage : 0f, "crop_stage_skip", onReduced);
+
+        /// <summary>Completes the whole growth timer (only offered near the end, see FinishMaxRemainingSeconds).</summary>
+        public void ShowCropFinishAd(Farming.CropInstance crop, Action<float> onReduced) =>
+            ShowCropTimeAd(crop, crop != null ? crop.RemainingSeconds : 0f, "crop_finish", onReduced);
+
+        public float SpeedupSeconds(Farming.CropInstance crop) =>
+            crop == null ? 0f : Mathf.Min(_config.CropAdReductionSeconds, crop.RemainingSeconds);
+
+        public bool CanOfferSpeedup(Farming.CropInstance crop) => CanOfferTime(crop, SpeedupSeconds(crop));
+        public bool CanOfferStageSkip(Farming.CropInstance crop) =>
+            crop != null && crop.Stage < Data.GrowthStage.Fruiting && CanOfferTime(crop, crop.SecondsToNextStage);
+        public bool CanOfferFinish(Farming.CropInstance crop) =>
+            crop != null && crop.RemainingSeconds <= FinishMaxRemainingSeconds && CanOfferTime(crop, crop.RemainingSeconds);
+        public bool CanOfferYieldBoost(Farming.CropInstance crop) =>
+            crop != null && !crop.IsReady && crop.BonusYieldMultiplier < YieldBoostMultiplier && IsRewardedAdAvailable();
+
+        private bool CanOfferTime(Farming.CropInstance crop, float seconds) =>
+            crop != null && !crop.IsReady && seconds > 0.5f && CanReduceTime(seconds) && IsRewardedAdAvailable();
+
+        private void ShowCropTimeAd(Farming.CropInstance crop, float amount, string placement, Action<float> onReduced)
         {
-            float amount = Mathf.Min(_config.CropAdReductionSeconds, crop.RemainingSeconds);
-            if (!CanReduceTime(amount)) { onReduced?.Invoke(0f); return; }
-            ShowAd("crop_speedup", completed =>
+            if (crop == null || crop.IsReady || amount <= 0f || !CanReduceTime(amount)) { onReduced?.Invoke(0f); return; }
+            ShowAd(placement, completed =>
             {
                 if (!completed) { onReduced?.Invoke(0f); return; }
-                _reductionUsedToday += amount;
                 var accel = Core.Services.ServiceLocator.Get<Farming.TimeAccelerationService>();
-                onReduced?.Invoke(accel.AccelerateCrop(crop, amount));
+                float reduced = accel.AccelerateCrop(crop, amount + 0.01f);
+                _reductionUsedToday += reduced;
+                _totalSecondsAccelerated += reduced;
+                onReduced?.Invoke(reduced);
+            });
+        }
+
+        /// <summary>Bigger harvest: multiplies this crop's yield once.</summary>
+        public void ShowYieldBoostAd(Farming.CropInstance crop, Action<bool> onRewarded)
+        {
+            if (!CanOfferYieldBoost(crop)) { onRewarded?.Invoke(false); return; }
+            ShowAd("yield_boost", completed =>
+            {
+                if (completed) crop.BonusYieldMultiplier *= YieldBoostMultiplier;
+                onRewarded?.Invoke(completed);
+            });
+        }
+
+        /// <summary>Free supplies (seeds, fertilizer, nutrients...).</summary>
+        public void ShowItemRewardAd(string itemId, int count, Action<bool> onRewarded)
+        {
+            ShowAd("item_reward", completed =>
+            {
+                if (completed && count > 0)
+                    Core.Services.ServiceLocator.Get<Inventory.InventoryService>().Add(itemId, count);
+                onRewarded?.Invoke(completed);
             });
         }
 
@@ -119,6 +193,29 @@ namespace FarmQuest.Systems.Ads
                     Core.Services.ServiceLocator.Get<Economy.EconomyService>().AddCoins(baseCoins, "ad_double");
                 onRewarded?.Invoke(grant);
             });
+        }
+    
+        // ---------- save (acceleration history + daily limits survive restarts) ----------
+        public Core.Save.AdSaveData CaptureState() => new Core.Save.AdSaveData
+        {
+            dayStamp = _dayStamp,
+            adsWatchedToday = _adsWatchedToday,
+            secondsReducedToday = _reductionUsedToday,
+            totalAdsWatched = _totalAdsWatched,
+            totalSecondsAccelerated = _totalSecondsAccelerated
+        };
+
+        public void RestoreState(Core.Save.AdSaveData data)
+        {
+            if (data == null) return;
+            _totalAdsWatched = Math.Max(0, data.totalAdsWatched);
+            _totalSecondsAccelerated = Math.Max(0, data.totalSecondsAccelerated);
+            if (data.dayStamp == DayStamp())
+            {
+                _dayStamp = data.dayStamp;
+                _adsWatchedToday = Math.Max(0, data.adsWatchedToday);
+                _reductionUsedToday = Mathf.Max(0f, data.secondsReducedToday);
+            }
         }
     }
 }

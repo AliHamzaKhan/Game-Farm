@@ -14,6 +14,7 @@ namespace FarmQuest.Systems.Farming
         private readonly ITimeService _time;
         private readonly Dictionary<CropInstance, FarmTile> _tracked = new Dictionary<CropInstance, FarmTile>();
         private readonly Dictionary<CropInstance, int> _lastStage = new Dictionary<CropInstance, int>();
+        private readonly Dictionary<CropInstance, Data.CropHealth> _lastHealth = new Dictionary<CropInstance, Data.CropHealth>();
 
         public CropGrowthService(ITimeService time)
         {
@@ -26,6 +27,7 @@ namespace FarmQuest.Systems.Farming
             if (crop == null || _tracked.ContainsKey(crop)) return;
             _tracked[crop] = tile;
             _lastStage[crop] = crop.CurrentStage;
+            _lastHealth[crop] = crop.Health;
             // Offline case: already ready while away.
             if (crop.IsReady) NotifyReady(crop, tile);
         }
@@ -34,6 +36,7 @@ namespace FarmQuest.Systems.Farming
         {
             _tracked.Remove(crop);
             _lastStage.Remove(crop);
+            _lastHealth.Remove(crop);
         }
 
         public void ApplyRainToAll()
@@ -54,12 +57,22 @@ namespace FarmQuest.Systems.Farming
                 var crop = kvp.Key;
                 var tile = kvp.Value;
                 int stage = crop.CurrentStage;
+                bool changed = false;
                 if (_lastStage.TryGetValue(crop, out int last) && stage != last)
                 {
                     _lastStage[crop] = stage;
                     if (stage > 0) tile.MarkGrowing();
-                    GameEvents.RaiseTileChanged(tile);
+                    changed = true;
                 }
+                // Care needs appear over time (drying out, pests): refresh views when they do.
+                var health = crop.Health;
+                if (!_lastHealth.TryGetValue(crop, out var lastHealth) || health != lastHealth)
+                {
+                    _lastHealth[crop] = health;
+                    if (health == Data.CropHealth.NeedsWater) tile.SetWaterState(Data.WaterState.Dry);
+                    changed = true;
+                }
+                if (changed) GameEvents.RaiseTileChanged(tile);
                 if (crop.IsReady) NotifyReady(crop, tile);
             }
         }

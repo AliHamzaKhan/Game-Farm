@@ -51,6 +51,9 @@ namespace FarmQuest.Systems.Orders
 
         public IReadOnlyList<DeliveryOrder> Orders => _orders;
 
+        /// <summary>Items the current city wants (world tour). Most orders draw from these when set.</summary>
+        public Func<List<string>> PreferredItems { get; set; }
+
         public OrderService(CropDatabase database, ITimeService time)
         {
             _database = database;
@@ -113,9 +116,15 @@ namespace FarmQuest.Systems.Orders
             int itemCount = _rng.Next(2, 4);
             var used = new HashSet<string>();
             int baseValue = 0;
+            var preferred = new List<ItemData>();
+            var wanted = PreferredItems?.Invoke();
+            if (wanted != null)
+                foreach (var item in pool)
+                    if (wanted.Contains(item.itemId)) preferred.Add(item);
             for (int i = 0; i < itemCount && used.Count < pool.Count; i++)
             {
-                var item = pool[_rng.Next(pool.Count)];
+                var source = preferred.Count > 0 && _rng.NextDouble() < 0.7 ? preferred : pool;
+                var item = source[_rng.Next(source.Count)];
                 if (!used.Add(item.itemId)) continue;
                 int qty = _rng.Next(3, 9);
                 order.Items.Add(new OrderItem { itemId = item.itemId, count = qty });

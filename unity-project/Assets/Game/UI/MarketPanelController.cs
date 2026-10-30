@@ -89,13 +89,26 @@ namespace FarmQuest.UI
             ClearList();
             foreach (var crop in _database.crops)
             {
-                if (!_progression.IsLevelUnlocked(crop.unlockLevel)) continue;
+                if (!Systems.World.WorldProgressionService.IsCropAvailable(crop)) continue;
                 string c = crop.cropId; // capture
                 AddRow($"{crop.displayName} seed", $"🪙 {crop.seedPrice}", "BUY",
                     () => _market.BuySeed(c, 1));
             }
-            // Supplies
-            AddRow("Compost", "🪙 8", "BUY", () => _market.BuyItem("compost", 1));
+            // Supplies: soil, fertilizer and crop-care items.
+            foreach (var id in new[] { "compost", "fertilizer", "pesticide",
+                         "nutrient_nitrogen", "nutrient_potassium", "nutrient_calcium" })
+            {
+                var item = _database.GetItem(id);
+                if (item == null) continue;
+                string itemId = id;
+                int have = ServiceLocator.Get<Systems.Inventory.InventoryService>().GetCount(id);
+                AddRow($"{item.displayName} (have {have})", $"🪙 {item.buyPrice}", "BUY", () => _market.BuyItem(itemId, 1));
+            }
+            // Optional rewarded ad for free supplies; never required.
+            if (ServiceLocator.TryGet(out Systems.Ads.RewardedAdService ads) && ads.IsRewardedAdAvailable())
+                AddRow($"Free: 2 Fertilizer ({ads.AdsLeftToday} ads left today)", "Ad", "WATCH",
+                    () => ads.ShowItemRewardAd("fertilizer", 2, ok =>
+                        GameEvents.RaiseToast(ok ? "+2 Fertilizer!" : "Ad not finished — no reward.")));
         }
 
         public void ShowSell()
@@ -112,7 +125,8 @@ namespace FarmQuest.UI
                 if (item == null || item.sellPrice <= 0) continue;
                 string id = slot.ItemId;
                 int count = inventory.GetCount(id);
-                AddRow($"{item.displayName} ×{count}", $"🪙 {item.sellPrice} ea", "SELL",
+                // Shows this city's price (city demand can raise it).
+                AddRow($"{item.displayName} ×{count}", $"🪙 {_market.GetSellPrice(id)} ea", "SELL",
                     () =>
                     {
                         int earned = _market.Sell(id, count);

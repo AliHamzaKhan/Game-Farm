@@ -68,12 +68,15 @@ namespace FarmQuest.Tests
         [Test]
         public void Stage_AdvancesThroughGrowth()
         {
+            // Equal stage weights: Seed..Fruiting split the timer into fifths; Mature = ready.
             var crop = PlantAt(_time.Now);
             Assert.AreEqual(0, crop.CurrentStage);
-            _time.AdvanceSeconds(60); // 50%
-            Assert.AreEqual(3, crop.CurrentStage);
-            _time.AdvanceSeconds(60);
-            Assert.AreEqual(5, crop.CurrentStage); // clamped to stages-1
+            _time.AdvanceSeconds(60); // 50% -> third growing stage (Vegetative)
+            Assert.AreEqual((int)GrowthStage.Vegetative, crop.CurrentStage);
+            _time.AdvanceSeconds(59);
+            Assert.AreEqual((int)GrowthStage.Fruiting, crop.CurrentStage);
+            _time.AdvanceSeconds(1);
+            Assert.AreEqual((int)GrowthStage.Mature, crop.CurrentStage);
         }
 
         [Test]

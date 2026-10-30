@@ -49,6 +49,8 @@ namespace FarmQuest.Editor
             GenerateProduction(crops);
             GenerateVillage(crops);
             GenerateGameEvents();
+            GenerateWorld();
+            GenerateFarmUpgrades();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log($"[FarmQuest] Generated {crops.Count} crops, {items.Count} items, game events, " +
@@ -70,18 +72,18 @@ namespace FarmQuest.Editor
             {
                 new CropSpec { id="carrot",  name="Carrot",  level=2,  seed=10, sell=6,  min=4, max=6,  xp=8,  water=1, stages=6, seconds=120, season=Season.Spring },
                 new CropSpec { id="lettuce", name="Lettuce", level=4,  seed=12, sell=7,  min=4, max=6,  xp=8,  water=1, stages=6, seconds=180, season=Season.Spring },
-                new CropSpec { id="tomato",  name="Tomato",  level=3,  seed=15, sell=12, min=5, max=8,  xp=10, water=2, stages=6, seconds=360, season=Season.Summer },
+                new CropSpec { id="tomato",  name="Tomato",  level=3,  seed=15, sell=12, min=5, max=8,  xp=10, water=2, stages=6, seconds=300, season=Season.Summer },
                 new CropSpec { id="onion",   name="Onion",   level=5,  seed=14, sell=8,  min=5, max=7,  xp=9,  water=2, stages=6, seconds=300, season=Season.None },
                 new CropSpec { id="peas",    name="Peas",    level=6,  seed=16, sell=9,  min=5, max=8,  xp=10, water=2, stages=6, seconds=300, season=Season.Spring },
-                new CropSpec { id="potato",  name="Potato",  level=7,  seed=12, sell=8,  min=6, max=9,  xp=11, water=2, stages=6, seconds=240, season=Season.Autumn },
+                new CropSpec { id="potato",  name="Potato",  level=7,  seed=12, sell=8,  min=6, max=9,  xp=11, water=2, stages=6, seconds=480, season=Season.Autumn },
                 new CropSpec { id="corn",    name="Corn",    level=13, seed=30, sell=14, min=6, max=10, xp=14, water=3, stages=6, seconds=600, season=Season.Summer },
                 new CropSpec { id="pumpkin", name="Pumpkin", level=9,  seed=25, sell=22, min=3, max=5,  xp=16, water=2, stages=6, seconds=900, season=Season.Autumn },
                 // ---- Phase 2 crops ----
-                new CropSpec { id="strawberry", name="Strawberry", level=12, seed=45, sell=16, min=6, max=10, xp=18, water=3, stages=6, seconds=720,  season=Season.Spring, category=CropCategory.Fruit },
+                new CropSpec { id="strawberry", name="Strawberry", level=12, seed=45, sell=16, min=6, max=10, xp=18, water=3, stages=6, seconds=360,  season=Season.Spring, category=CropCategory.Fruit },
                 new CropSpec { id="watermelon", name="Watermelon", level=14, seed=60, sell=45, min=3, max=5,  xp=22, water=4, stages=6, seconds=1200, season=Season.Summer, category=CropCategory.Fruit },
                 new CropSpec { id="apple",   name="Apple",   level=17, seed=80, sell=18, min=8, max=12, xp=24, water=3, stages=6, seconds=1800, season=Season.Autumn, category=CropCategory.Fruit },
                 new CropSpec { id="orange",  name="Orange",  level=19, seed=90, sell=20, min=8, max=12, xp=26, water=3, stages=6, seconds=2100, season=Season.None,   category=CropCategory.Fruit },
-                new CropSpec { id="wheat",   name="Wheat",   level=20, seed=50, sell=8,  min=10, max=15, xp=20, water=2, stages=6, seconds=1500, season=Season.Autumn, category=CropCategory.Special },
+                new CropSpec { id="wheat",   name="Wheat",   level=20, seed=20, sell=8,  min=10, max=15, xp=20, water=2, stages=6, seconds=240, season=Season.Autumn, category=CropCategory.Special },
                 new CropSpec { id="sunflower", name="Sunflower", level=21, seed=70, sell=30, min=4, max=6, xp=22, water=2, stages=6, seconds=1200, season=Season.None, category=CropCategory.Special },
                 new CropSpec { id="mango", name="Mango", level=26, seed=150, sell=40, min=6, max=10, xp=30, water=4, stages=6, seconds=7200, season=Season.Summer, category=CropCategory.Fruit },
                 new CropSpec { id="peach", name="Peach", level=30, seed=180, sell=45, min=6, max=10, xp=32, water=4, stages=6, seconds=10800, season=Season.None, category=CropCategory.Fruit },
@@ -104,10 +106,55 @@ namespace FarmQuest.Editor
                 crop.growthStages = s.stages;
                 crop.waterRequired = s.water;
                 crop.preferredSeason = s.season;
+                ApplyCare(crop);
                 SaveAsset(crop, $"{Root}/Crop_{s.id}.asset");
                 list.Add(crop);
             }
             return list;
+        }
+
+        // ---- crop lifecycle + care (world-tour update). Crop-specific: not every crop needs everything. ----
+        private struct CareSpec
+        {
+            public float[] weights; // Seed, Sprout, Vegetative, Flowering, Fruiting
+            public float waterInterval; public bool fertilizer; public NutrientType nutrient;
+            public bool prune; public float pest; public Color leaf, flower, produce;
+        }
+
+        private static readonly Dictionary<string, CareSpec> Care = new Dictionary<string, CareSpec>
+        {
+            { "carrot",     new CareSpec { weights=new[]{1f,1f,2f,0.6f,1.4f},   waterInterval=0,   pest=0.10f, leaf=C(0.30f,0.70f,0.25f), flower=C(1f,1f,0.95f),   produce=C(0.95f,0.50f,0.10f) } },
+            { "lettuce",    new CareSpec { weights=new[]{1f,1.5f,2.5f,0.3f,0.7f}, waterInterval=0, nutrient=NutrientType.Nitrogen, pest=0.15f, leaf=C(0.45f,0.85f,0.35f), flower=C(1f,0.95f,0.5f), produce=C(0.60f,0.90f,0.40f) } },
+            { "tomato",     new CareSpec { weights=new[]{0.8f,1f,1.6f,1.2f,2.4f}, waterInterval=120, fertilizer=true, nutrient=NutrientType.Calcium, prune=true, pest=0.35f, leaf=C(0.25f,0.60f,0.20f), flower=C(1f,0.90f,0.20f), produce=C(0.90f,0.15f,0.10f) } },
+            { "onion",      new CareSpec { weights=new[]{1f,1f,2f,0.5f,1.5f},   waterInterval=0,   pest=0.15f, leaf=C(0.40f,0.75f,0.35f), flower=C(0.95f,0.90f,1f),  produce=C(0.65f,0.30f,0.55f) } },
+            { "peas",       new CareSpec { weights=new[]{1f,1f,1.4f,1.4f,1.2f}, waterInterval=100, pest=0.20f, leaf=C(0.35f,0.75f,0.30f), flower=C(1f,1f,1f),        produce=C(0.45f,0.80f,0.25f) } },
+            { "potato",     new CareSpec { weights=new[]{1f,1.4f,2.2f,0.8f,2.6f}, waterInterval=160, fertilizer=true, nutrient=NutrientType.Potassium, pest=0.30f, leaf=C(0.30f,0.62f,0.25f), flower=C(0.85f,0.75f,1f), produce=C(0.80f,0.65f,0.35f) } },
+            { "corn",       new CareSpec { weights=new[]{0.8f,1.2f,2.4f,1f,1.6f}, waterInterval=180, fertilizer=true, nutrient=NutrientType.Nitrogen, pest=0.25f, leaf=C(0.35f,0.70f,0.25f), flower=C(0.95f,0.85f,0.55f), produce=C(1f,0.85f,0.20f) } },
+            { "pumpkin",    new CareSpec { weights=new[]{1f,1f,2f,1.2f,2.8f},   waterInterval=200, fertilizer=true, nutrient=NutrientType.Potassium, prune=true, pest=0.30f, leaf=C(0.25f,0.58f,0.22f), flower=C(1f,0.80f,0.15f), produce=C(1f,0.55f,0.05f) } },
+            { "strawberry", new CareSpec { weights=new[]{0.8f,1f,1.2f,1.4f,1.6f}, waterInterval=100, nutrient=NutrientType.Potassium, prune=true, pest=0.30f, leaf=C(0.25f,0.65f,0.25f), flower=C(1f,1f,1f), produce=C(0.95f,0.10f,0.20f) } },
+            { "watermelon", new CareSpec { weights=new[]{1f,1f,2f,1.2f,2.8f},   waterInterval=200, fertilizer=true, nutrient=NutrientType.Potassium, prune=true, pest=0.25f, leaf=C(0.25f,0.60f,0.25f), flower=C(1f,0.90f,0.25f), produce=C(0.15f,0.50f,0.15f) } },
+            { "apple",      new CareSpec { weights=new[]{1f,1f,2f,1.5f,2f},     waterInterval=300, fertilizer=true, nutrient=NutrientType.Calcium, prune=true, pest=0.25f, leaf=C(0.25f,0.55f,0.20f), flower=C(1f,0.85f,0.90f), produce=C(0.85f,0.10f,0.10f) } },
+            { "orange",     new CareSpec { weights=new[]{1f,1f,2f,1.5f,2f},     waterInterval=300, fertilizer=true, prune=true, pest=0.25f, leaf=C(0.20f,0.50f,0.20f), flower=C(1f,1f,0.95f), produce=C(1f,0.60f,0.05f) } },
+            { "wheat",      new CareSpec { weights=new[]{0.8f,1.5f,2f,0.7f,1.2f}, waterInterval=0, nutrient=NutrientType.Nitrogen, pest=0.20f, leaf=C(0.55f,0.75f,0.30f), flower=C(0.95f,0.90f,0.60f), produce=C(0.90f,0.75f,0.30f) } },
+            { "sunflower",  new CareSpec { weights=new[]{1f,1f,2f,2f,1f},       waterInterval=150, pest=0.15f, leaf=C(0.30f,0.65f,0.25f), flower=C(1f,0.85f,0.05f), produce=C(0.40f,0.25f,0.10f) } },
+            { "mango",      new CareSpec { weights=new[]{1f,1f,2f,1.5f,2f},     waterInterval=600, fertilizer=true, prune=true, pest=0.25f, leaf=C(0.20f,0.50f,0.20f), flower=C(1f,0.95f,0.70f), produce=C(1f,0.75f,0.10f) } },
+            { "peach",      new CareSpec { weights=new[]{1f,1f,2f,1.5f,2f},     waterInterval=600, fertilizer=true, nutrient=NutrientType.Calcium, prune=true, pest=0.25f, leaf=C(0.25f,0.55f,0.25f), flower=C(1f,0.75f,0.85f), produce=C(1f,0.65f,0.45f) } },
+        };
+
+        private static Color C(float r, float g, float b) => new Color(r, g, b);
+
+        private static void ApplyCare(CropData crop)
+        {
+            if (!Care.TryGetValue(crop.cropId, out var c)) return;
+            crop.stageWeights = c.weights;
+            crop.waterIntervalSeconds = c.waterInterval;
+            crop.needsFertilizer = c.fertilizer;
+            crop.requiredNutrient = c.nutrient;
+            crop.needsPruning = c.prune;
+            crop.pestChance = c.pest;
+            crop.leafColor = c.leaf;
+            crop.flowerColor = c.flower;
+            crop.produceColor = c.produce;
         }
 
         private static List<ItemData> GenerateItems(List<CropData> crops)
@@ -152,6 +199,26 @@ namespace FarmQuest.Editor
             fertilizer.buyPrice = 15;
             SaveAsset(fertilizer, $"{Root}/Item_fertilizer.asset");
             list.Add(fertilizer);
+
+            // Crop care supplies (world-tour update).
+            var supplies = new (string id, string name, int price)[]
+            {
+                ("pesticide",          "Pest Spray",         12),
+                ("nutrient_nitrogen",  "Nitrogen Nutrient",  10),
+                ("nutrient_potassium", "Potassium Nutrient", 12),
+                ("nutrient_calcium",   "Calcium Nutrient",   14),
+            };
+            foreach (var d in supplies)
+            {
+                var item = ScriptableObject.CreateInstance<ItemData>();
+                item.itemId = d.id;
+                item.displayName = d.name;
+                item.category = ItemCategory.Fertilizer;
+                item.maxStack = 99;
+                item.buyPrice = d.price;
+                SaveAsset(item, $"{Root}/Item_{d.id}.asset");
+                list.Add(item);
+            }
 
             return list;
         }
@@ -259,6 +326,11 @@ namespace FarmQuest.Editor
                 ("land_2",         "Expanding",      "Unlock 2 farm regions.",          AchievementType.UnlockLand,         2,     400, 100),
                 ("missions_10",    "Reliable",       "Complete 10 daily missions.",     AchievementType.CompleteMissions,   10,    500, 150),
                 ("story_3",        "Story So Far",   "Finish story chapter 3.",         AchievementType.CompleteStoryChapter, 3,   800, 200),
+                ("city_1",         "First Stop",     "Complete your first city.",       AchievementType.CompleteCities,     1,     300, 100),
+                ("city_10",        "Frequent Flyer", "Complete 10 cities.",             AchievementType.CompleteCities,     10,   3000, 600),
+                ("country_1",      "Nationwide",     "Complete a whole country.",       AchievementType.CompleteCountries,  1,    1500, 400),
+                ("country_3",      "Globe Trotter",  "Complete 3 countries.",           AchievementType.CompleteCountries,  3,    6000, 1200),
+                ("care_50",        "Plant Doctor",   "Spray, prune or feed nutrients 50 times.", AchievementType.CareActions, 50, 600, 150),
             };
             foreach (var d in defs)
             {
@@ -786,6 +858,189 @@ namespace FarmQuest.Editor
                 e.xpMultiplier = d.xp;
                 SaveAsset(e, $"{Root}/GameEvent_{d.id}.asset");
             }
+        }
+
+        // ---------------- World tour ----------------
+
+        // Objective codes: "H:crop:n" harvest, "D:item:n" deliver, "S:item:n" sell, "E:n" earn from sales.
+        private struct CitySpec
+        {
+            public string id, name, desc, intro, objectives, prices;
+            public CitySpec(string id, string name, string desc, string intro, string objectives, string prices = "")
+            { this.id = id; this.name = name; this.desc = desc; this.intro = intro; this.objectives = objectives; this.prices = prices; }
+        }
+
+        private static void GenerateWorld()
+        {
+            var countries = new (string id, string name, long bonus, int xp, CitySpec[] cities)[]
+            {
+                ("pakistan", "Pakistan", 3000, 600, new[]
+                {
+                    new CitySpec("karachi", "Karachi", "The port city needs fresh food. Start your farm here!", "tomato,potato,wheat",
+                        "H:tomato:20;H:potato:15;D:crop_wheat:15;E:400", "crop_tomato:1.2"),
+                    new CitySpec("lahore", "Lahore", "Food lovers want seasonal vegetables.", "carrot,onion",
+                        "H:carrot:25;H:onion:20;S:crop_tomato:20;E:800", "crop_carrot:1.3;crop_onion:1.3"),
+                    new CitySpec("islamabad", "Islamabad", "Green city, green salads.", "lettuce,peas",
+                        "H:lettuce:25;H:peas:25;D:crop_potato:30;E:1200", "crop_lettuce:1.3"),
+                    new CitySpec("faisalabad", "Faisalabad", "The grain hub runs on wheat and corn.", "corn",
+                        "H:wheat:60;H:corn:30;D:crop_wheat:40;E:1800", "crop_wheat:1.4;crop_corn:1.2"),
+                    new CitySpec("multan", "Multan", "Sunny fields for pumpkins and sunflowers.", "pumpkin,sunflower",
+                        "H:pumpkin:15;H:sunflower:20;S:crop_onion:40;E:2500", "crop_sunflower:1.3"),
+                    new CitySpec("peshawar", "Peshawar", "The old bazaar wants sweet strawberries.", "strawberry",
+                        "H:strawberry:30;D:crop_peas:40;D:crop_corn:30;E:3200", "crop_strawberry:1.3"),
+                    new CitySpec("quetta", "Quetta", "The fruit garden of the mountains.", "watermelon,apple",
+                        "H:watermelon:15;H:apple:20;D:crop_strawberry:30;E:4000", "crop_apple:1.4;crop_watermelon:1.3"),
+                }),
+                ("india", "India", 8000, 1200, new[]
+                {
+                    new CitySpec("mumbai", "Mumbai", "A huge city with a huge appetite.", "orange",
+                        "H:tomato:80;H:onion:60;D:crop_potato:60;E:5000", "crop_onion:1.4"),
+                    new CitySpec("delhi", "Delhi", "Breads and curries: wheat and carrots wanted.", "",
+                        "H:wheat:120;H:carrot:80;S:crop_corn:60;E:6000", "crop_wheat:1.3"),
+                    new CitySpec("jaipur", "Jaipur", "The pink city loves bright sunflowers.", "",
+                        "H:sunflower:50;H:peas:80;D:crop_pumpkin:30;E:7000", "crop_sunflower:1.4"),
+                    new CitySpec("bengaluru", "Bengaluru", "Garden city: salads and berries.", "",
+                        "H:lettuce:100;H:strawberry:60;D:crop_tomato:80;E:8000", "crop_strawberry:1.3"),
+                    new CitySpec("kolkata", "Kolkata", "Potatoes for every kitchen.", "",
+                        "H:potato:120;H:wheat:100;S:crop_lettuce:80;E:9000", "crop_potato:1.4"),
+                    new CitySpec("chennai", "Chennai", "Tropical fruit season begins.", "mango",
+                        "H:watermelon:30;D:crop_orange:40;D:crop_mango:10;E:10000", "crop_mango:1.4;crop_orange:1.3"),
+                }),
+                ("japan", "Japan", 15000, 2000, new[]
+                {
+                    new CitySpec("tokyo", "Tokyo", "Premium fruit contracts for picky buyers.", "",
+                        "H:strawberry:120;H:watermelon:40;D:crop_strawberry:80;E:14000", "crop_strawberry:1.6;crop_watermelon:1.5"),
+                    new CitySpec("osaka", "Osaka", "Street food capital: corn and onions.", "",
+                        "H:corn:120;H:onion:120;S:crop_tomato:150;E:16000", "crop_corn:1.4"),
+                    new CitySpec("kyoto", "Kyoto", "Temple gardens want delicate greens.", "",
+                        "H:peas:150;H:lettuce:150;D:crop_carrot:120;E:18000", "crop_peas:1.5"),
+                    new CitySpec("sapporo", "Sapporo", "Cold north: potatoes, corn and peaches.", "peach",
+                        "H:potato:200;H:corn:150;D:crop_pumpkin:60;E:20000", "crop_potato:1.4;crop_peach:1.5"),
+                }),
+                ("china", "China", 25000, 3000, new[]
+                {
+                    new CitySpec("beijing", "Beijing", "Grain for the capital.", "",
+                        "H:wheat:250;H:corn:200;D:crop_onion:150;E:24000", "crop_wheat:1.3"),
+                    new CitySpec("shanghai", "Shanghai", "Fresh produce for a busy port.", "",
+                        "H:lettuce:220;H:tomato:220;S:crop_strawberry:150;E:26000", "crop_tomato:1.3"),
+                    new CitySpec("guangzhou", "Guangzhou", "Tropical fruit markets.", "",
+                        "H:watermelon:80;H:orange:60;D:crop_mango:20;E:28000", "crop_mango:1.5"),
+                    new CitySpec("chengdu", "Chengdu", "Spicy kitchens need fresh vegetables.", "",
+                        "H:peas:250;H:carrot:250;D:crop_sunflower:100;E:30000", "crop_carrot:1.3"),
+                }),
+                ("turkey", "Turkey", 30000, 3500, new[]
+                {
+                    new CitySpec("istanbul", "Istanbul", "Two continents, one big market.", "",
+                        "H:tomato:300;H:onion:250;D:crop_wheat:300;E:34000", "crop_tomato:1.4"),
+                    new CitySpec("ankara", "Ankara", "Bread and potatoes for the capital.", "",
+                        "H:wheat:400;H:potato:300;S:crop_corn:250;E:36000", "crop_wheat:1.3"),
+                    new CitySpec("izmir", "Izmir", "Orchards by the sea.", "",
+                        "H:orange:100;H:apple:100;D:crop_peach:30;E:38000", "crop_peach:1.5;crop_orange:1.3"),
+                }),
+                ("italy", "Italy", 40000, 4000, new[]
+                {
+                    new CitySpec("rome", "Rome", "Tomatoes and wheat for every pasta.", "",
+                        "H:tomato:400;H:lettuce:300;D:crop_wheat:400;E:42000", "crop_tomato:1.4"),
+                    new CitySpec("milan", "Milan", "Fashionable pumpkin dishes.", "",
+                        "H:corn:350;H:pumpkin:120;S:crop_onion:350;E:45000", "crop_pumpkin:1.5"),
+                    new CitySpec("florence", "Florence", "Art, sunflowers and berries.", "",
+                        "H:sunflower:200;H:strawberry:300;D:crop_apple:120;E:48000", "crop_sunflower:1.4"),
+                    new CitySpec("naples", "Naples", "The home of tomato sauce.", "",
+                        "H:tomato:500;H:peas:350;D:crop_orange:120;E:52000", "crop_tomato:1.5"),
+                }),
+                ("brazil", "Brazil", 50000, 5000, new[]
+                {
+                    new CitySpec("sao_paulo", "Sao Paulo", "A giant city needs giant harvests.", "",
+                        "H:corn:450;H:potato:450;D:crop_watermelon:120;E:56000", "crop_corn:1.3"),
+                    new CitySpec("rio", "Rio de Janeiro", "Beach fruit stands everywhere.", "",
+                        "H:orange:150;H:mango:60;D:crop_strawberry:400;E:60000", "crop_mango:1.5;crop_orange:1.4"),
+                    new CitySpec("brasilia", "Brasilia", "Planned city, planned fields.", "",
+                        "H:wheat:600;H:sunflower:250;S:crop_pumpkin:200;E:64000", "crop_sunflower:1.4"),
+                }),
+                ("usa", "USA", 75000, 7000, new[]
+                {
+                    new CitySpec("new_york", "New York", "The big apple wants apples.", "",
+                        "H:apple:200;H:lettuce:500;D:crop_tomato:500;E:70000", "crop_apple:1.6"),
+                    new CitySpec("los_angeles", "Los Angeles", "Sunny berries and citrus.", "",
+                        "H:strawberry:600;H:orange:200;S:crop_watermelon:200;E:75000", "crop_strawberry:1.4"),
+                    new CitySpec("chicago", "Chicago", "Heartland corn and wheat.", "",
+                        "H:corn:700;H:wheat:700;D:crop_potato:600;E:80000", "crop_corn:1.4"),
+                    new CitySpec("houston", "Houston", "Everything is bigger here.", "",
+                        "H:watermelon:250;H:pumpkin:250;D:crop_onion:600;E:85000", "crop_pumpkin:1.4"),
+                    new CitySpec("san_francisco", "San Francisco", "The finest farm-to-table contracts.", "",
+                        "H:peach:80;H:strawberry:700;D:crop_lettuce:600;E:95000", "crop_peach:1.6;crop_strawberry:1.4"),
+                }),
+            };
+
+            var world = ScriptableObject.CreateInstance<WorldData>();
+            int level = 0;
+            foreach (var c in countries)
+            {
+                var country = new CountryDef
+                {
+                    countryId = c.id, displayName = c.name,
+                    completionBonusCoins = c.bonus, completionBonusXp = c.xp
+                };
+                foreach (var spec in c.cities)
+                    country.cities.Add(BuildCity(spec, level++));
+                world.countries.Add(country);
+            }
+            SaveAsset(world, $"{Root}/WorldData.asset");
+        }
+
+        private static CityDef BuildCity(CitySpec spec, int level)
+        {
+            var city = new CityDef { cityId = spec.id, displayName = spec.name, description = spec.desc };
+            foreach (var id in spec.intro.Split(','))
+                if (!string.IsNullOrWhiteSpace(id)) city.introducedCropIds.Add(id.Trim());
+            long earn = 0;
+            foreach (var code in spec.objectives.Split(';'))
+            {
+                var parts = code.Split(':');
+                var o = new CityObjective();
+                switch (parts[0])
+                {
+                    case "H": o.type = CityObjectiveType.HarvestCrop; o.itemId = parts[1]; o.target = long.Parse(parts[2]); break;
+                    case "D": o.type = CityObjectiveType.DeliverItem; o.itemId = parts[1]; o.target = long.Parse(parts[2]); break;
+                    case "S": o.type = CityObjectiveType.SellItem; o.itemId = parts[1]; o.target = long.Parse(parts[2]); break;
+                    case "E": o.type = CityObjectiveType.EarnFromSales; o.target = long.Parse(parts[1]); earn = o.target; break;
+                    default: Debug.LogWarning($"[FarmQuest] Unknown objective code '{code}' in {spec.id}"); continue;
+                }
+                city.objectives.Add(o);
+            }
+            foreach (var code in spec.prices.Split(';'))
+            {
+                if (string.IsNullOrWhiteSpace(code)) continue;
+                var parts = code.Split(':');
+                city.prices.Add(new CityPriceModifier
+                {
+                    itemId = parts[0],
+                    sellMultiplier = float.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture)
+                });
+            }
+            // Rewards scale with the city's sales target so each stop pays for the next.
+            city.rewardCoins = System.Math.Max(300, earn / 2);
+            city.rewardXp = 100 + 40 * level;
+            city.rewardItems.Add(new CityRewardItem { itemId = "fertilizer", count = 2 + level / 4 });
+            city.rewardItems.Add(new CityRewardItem { itemId = "pesticide", count = 2 + level / 4 });
+            return city;
+        }
+
+        private static void GenerateFarmUpgrades()
+        {
+            var db = ScriptableObject.CreateInstance<FarmUpgradeDatabase>();
+            db.upgrades = new List<FarmUpgradeDef>
+            {
+                new FarmUpgradeDef { upgradeId="rich_soil",  displayName="Rich Soil",    description="Crops grow 5% faster per level.",
+                    effect=FarmUpgradeEffect.GrowthSpeed,    valuePerLevel=0.05f, maxLevel=6, baseCost=400, costGrowth=1.9f },
+                new FarmUpgradeDef { upgradeId="better_seeds", displayName="Better Seeds", description="Harvests give 8% more per level.",
+                    effect=FarmUpgradeEffect.YieldBonus,     valuePerLevel=0.08f, maxLevel=5, baseCost=600, costGrowth=1.9f },
+                new FarmUpgradeDef { upgradeId="pest_guard", displayName="Pest Guard",   description="15% fewer pest attacks per level.",
+                    effect=FarmUpgradeEffect.PestResistance, valuePerLevel=0.15f, maxLevel=4, baseCost=350, costGrowth=1.8f },
+                new FarmUpgradeDef { upgradeId="seed_saver", displayName="Seed Saver",   description="6% chance per level to keep the seed when planting.",
+                    effect=FarmUpgradeEffect.SeedSaver,      valuePerLevel=0.06f, maxLevel=5, baseCost=500, costGrowth=1.8f },
+            };
+            SaveAsset(db, $"{Root}/FarmUpgradeDatabase.asset");
         }
 
         private static void SaveAsset(Object asset, string path)

@@ -57,7 +57,8 @@ namespace FarmQuest.Systems.Farming
             }
 
             // Smart quick actions for the obvious cases; panel for choices.
-            if (tile.CanHarvest())
+            // Quick-harvest ripe crops, unless pests need spraying first (the panel explains).
+            if (tile.CanHarvest() && !tile.Crop.HasPests)
             {
                 var result = _farm.TryHarvest(tile);
                 if (result.success)

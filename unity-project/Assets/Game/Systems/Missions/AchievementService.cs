@@ -21,6 +21,9 @@ namespace FarmQuest.Systems.Missions
         public int MissionsCompleted { get; private set; }
         public int RegionsUnlocked { get; private set; }
         public int HighestStoryChapter { get; private set; }
+        public int CitiesCompleted { get; private set; }
+        public int CountriesCompleted { get; private set; }
+        public int CareActions { get; private set; }
 
         public AchievementService(List<AchievementData> definitions)
         {
@@ -31,6 +34,9 @@ namespace FarmQuest.Systems.Missions
             GameEvents.MissionClaimed += id => { MissionsCompleted++; CheckAll(); };
             GameEvents.RegionUnlocked += id => { RegionsUnlocked++; CheckAll(); };
             GameEvents.LevelUp += level => CheckAll();
+            GameEvents.CityCompleted += (index, name) => { CitiesCompleted++; CheckAll(); };
+            GameEvents.CountryCompleted += name => { CountriesCompleted++; CheckAll(); };
+            GameEvents.CropCared += action => { CareActions++; CheckAll(); };
             GameEvents.StoryChapterCompleted += chapter => { HighestStoryChapter = chapter + 1; CheckAll(); };
         }
 
@@ -57,6 +63,9 @@ namespace FarmQuest.Systems.Missions
                 case AchievementType.UnlockLand: return RegionsUnlocked >= def.threshold;
                 case AchievementType.CompleteMissions: return MissionsCompleted >= def.threshold;
                 case AchievementType.CompleteStoryChapter: return HighestStoryChapter >= def.threshold;
+                case AchievementType.CompleteCities: return CitiesCompleted >= def.threshold;
+                case AchievementType.CompleteCountries: return CountriesCompleted >= def.threshold;
+                case AchievementType.CareActions: return CareActions >= def.threshold;
                 default: return false;
             }
         }
@@ -86,7 +95,10 @@ namespace FarmQuest.Systems.Missions
                 totalItemsSold = TotalItemsSold,
                 missionsCompleted = MissionsCompleted,
                 regionsUnlocked = RegionsUnlocked,
-                highestStoryChapter = HighestStoryChapter
+                highestStoryChapter = HighestStoryChapter,
+                citiesCompleted = CitiesCompleted,
+                countriesCompleted = CountriesCompleted,
+                careActions = CareActions
             };
         }
 
@@ -101,6 +113,9 @@ namespace FarmQuest.Systems.Missions
             MissionsCompleted = data.missionsCompleted;
             RegionsUnlocked = data.regionsUnlocked;
             HighestStoryChapter = data.highestStoryChapter;
+            CitiesCompleted = data.citiesCompleted;
+            CountriesCompleted = data.countriesCompleted;
+            CareActions = data.careActions;
         }
     }
 }

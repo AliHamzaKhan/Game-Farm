@@ -30,15 +30,15 @@ namespace FarmQuest.UI
             foreach (Transform child in listContent) Destroy(child.gameObject);
 
             var db = ServiceLocator.Get<CropDatabase>();
-            var progression = ServiceLocator.Get<ProgressionService>();
             var interaction = FindObjectOfType<FarmInteractionController>();
 
             foreach (var crop in db.crops)
             {
-                if (!progression.IsLevelUnlocked(crop.unlockLevel)) continue;
+                if (!Systems.World.WorldProgressionService.IsCropAvailable(crop)) continue;
                 var button = Instantiate(seedButtonPrefab, listContent);
                 var label = button.GetComponentInChildren<Text>();
-                if (label != null) label.text = $"{crop.displayName}\n🪙{crop.seedPrice}";
+                int owned = ServiceLocator.Get<Systems.Inventory.InventoryService>().GetCount("seed_" + crop.cropId);
+                if (label != null) label.text = $"{crop.displayName}\n{owned} seeds · {PlotPanelController.FormatTime(crop.growthDurationSeconds)}";
                 string id = crop.cropId;
                 button.onClick.AddListener(() =>
                 {

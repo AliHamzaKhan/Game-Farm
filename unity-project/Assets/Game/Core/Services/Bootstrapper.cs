@@ -44,6 +44,8 @@ namespace FarmQuest.Core.Services
         public AnimalDatabase animalDatabase;
         public MachineDatabase machineDatabase;
         public VillageDatabase villageDatabase;
+        public WorldData worldData;
+        public FarmUpgradeDatabase farmUpgradeDatabase;
 
         [Header("Phase 2 data pools (or leave empty to load from Resources/Data)")]
         public List<MissionData> missionPool = new List<MissionData>();
@@ -103,7 +105,17 @@ namespace FarmQuest.Core.Services
             ServiceLocator.Register(new FarmService(farmLayout, cropDatabase, time));
             ServiceLocator.Register(new CropGrowthService(time));
             ServiceLocator.Register(new TimeAccelerationService());
-            ServiceLocator.Register(new MarketService(cropDatabase, new FixedPriceStrategy()));
+            var pricing = new FixedPriceStrategy();
+            ServiceLocator.Register(new MarketService(cropDatabase, pricing));
+            ServiceLocator.Register(new CropCareService());
+            if (farmUpgradeDatabase == null) farmUpgradeDatabase = Resources.Load<FarmUpgradeDatabase>("Data/FarmUpgradeDatabase");
+            ServiceLocator.Register(new FarmUpgradeService(farmUpgradeDatabase));
+            // World tour: countries -> cities -> objectives (data-driven).
+            if (worldData == null) worldData = Resources.Load<WorldData>("Data/WorldData");
+            if (worldData == null) Debug.LogError("[Bootstrapper] WorldData missing. Run FarmQuest/Generate/All Game Data.");
+            var world = new WorldProgressionService(worldData);
+            ServiceLocator.Register(world);
+            pricing.ItemSellMultiplier = world.GetSellMultiplier;
             ServiceLocator.Register(new RewardedAdService(httpConfig, time,
                 new StubAdProvider())); // Phase 6: swap for real provider
 
@@ -145,7 +157,9 @@ namespace FarmQuest.Core.Services
 
             // ---- Phase 5: business & world ----
             ServiceLocator.Register(new ProductionService(machineDatabase, time));
-            ServiceLocator.Register(new OrderService(cropDb, time));
+            var orders = new OrderService(cropDb, time);
+            orders.PreferredItems = world.DemandedItemIds; // city markets ask for their own crops
+            ServiceLocator.Register(orders);
             if (villageDatabase == null) villageDatabase = Resources.Load<VillageDatabase>("Data/VillageDatabase");
             if (villageDatabase == null) Debug.LogError("[Bootstrapper] VillageDatabase missing. Run FarmQuest/Generate/All Game Data.");
             ServiceLocator.Register(villageDatabase);
@@ -224,6 +238,13 @@ namespace FarmQuest.Core.Services
             inventory.Add("seed_carrot", startingCarrotSeeds);
             inventory.Add("seed_tomato", startingTomatoSeeds);
             inventory.Add("compost", 2);
+            inventory.Add("fertilizer", 2);
+            inventory.Add(CropCareService.PesticideItemId, 2);
+            // Seeds for the first city's crops so its contracts can start right away.
+            var firstCity = ServiceLocator.Get<WorldProgressionService>().Current;
+            if (firstCity != null)
+                foreach (var cropId in firstCity.City.introducedCropIds)
+                    if (cropId != "tomato") inventory.Add("seed_" + cropId, startingTomatoSeeds);
             // Grandpa's gifts: a dog companion and the small farmhouse.
             ServiceLocator.Get<PetService>().UnlockPet("dog");
             ServiceLocator.Get<BuildingService>().GrantLevel("house", 1);

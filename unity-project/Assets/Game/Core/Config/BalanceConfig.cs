@@ -28,7 +28,7 @@ namespace FarmQuest.Core.Config
         [Header("Rewarded ads (§12) — conservative, kid-safe defaults")]
         public int maxRewardedAdsPerDay = 5;
         public float rewardedAdCooldownSeconds = 300f;
-        public float maxTimeReductionPerDaySeconds = 600f;
+        public float maxTimeReductionPerDaySeconds = 1800f;
         public float cropAdReductionSeconds = 60f;
         public float productionAdReductionSeconds = 180f;
         public int maxAdsPerActivity = 2;

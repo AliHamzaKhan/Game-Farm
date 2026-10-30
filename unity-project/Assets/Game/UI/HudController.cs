@@ -15,6 +15,8 @@ namespace FarmQuest.UI
         public Text levelText;
         public Slider xpSlider;
         public Text clockText;
+        [Tooltip("Current city and its completion, e.g. 'Lv 1 Karachi, Pakistan - 35%'.")]
+        public Text cityText;
 
         [Header("Panels")]
         public GameObject marketPanel;
@@ -30,6 +32,7 @@ namespace FarmQuest.UI
         public GameObject orderPanel;
         public GameObject villagePanel;
         public GameObject parentGatePanel;
+        public GameObject worldPanel;
         public Text toastText;
 
         private float _toastTimer;
@@ -40,6 +43,8 @@ namespace FarmQuest.UI
             GameEvents.LevelChanged += OnLevel;
             GameEvents.LevelUp += OnLevelUp;
             GameEvents.ToastRequested += ShowToast;
+            GameEvents.WorldChanged += OnWorldChanged;
+            OnWorldChanged();
 
             var economy = ServiceLocator.Get<Systems.Economy.EconomyService>();
             var progression = ServiceLocator.Get<Systems.Economy.ProgressionService>();
@@ -53,6 +58,20 @@ namespace FarmQuest.UI
             GameEvents.LevelChanged -= OnLevel;
             GameEvents.LevelUp -= OnLevelUp;
             GameEvents.ToastRequested -= ShowToast;
+            GameEvents.WorldChanged -= OnWorldChanged;
+        }
+
+        private void OnWorldChanged()
+        {
+            if (cityText == null) return;
+            if (!ServiceLocator.TryGet(out Systems.World.WorldProgressionService world) || world.Current == null)
+            {
+                cityText.text = "";
+                return;
+            }
+            var c = world.Current;
+            cityText.text = $"Lv {c.LevelNumber} {c.CityName}, {c.CountryName} - " +
+                            $"{Mathf.RoundToInt(world.CurrentCityCompletion * 100f)}%";
         }
 
         private void OnCoins(long coins)
@@ -107,6 +126,7 @@ namespace FarmQuest.UI
         public void ToggleOrders() => Toggle(orderPanel);
         public void ToggleVillage() => Toggle(villagePanel);
         public void ToggleParentGate() => Toggle(parentGatePanel);
+        public void ToggleWorld() => Toggle(worldPanel);
 
         private static void Toggle(GameObject go)
         {

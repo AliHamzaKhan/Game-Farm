@@ -58,6 +58,9 @@ namespace FarmQuest.Core.Save
                 weather = ServiceLocator.Get<WeatherService>().CaptureState(),
                 parent = ServiceLocator.Get<ParentModeService>().CaptureState(),
                 playtime = ServiceLocator.Get<PlaytimeService>().CaptureState(),
+                world = ServiceLocator.Get<WorldProgressionService>().CaptureState(),
+                farmUpgrades = ServiceLocator.Get<FarmUpgradeService>().CaptureState(),
+                ads = ServiceLocator.Get<Systems.Ads.RewardedAdService>().CaptureState(),
                 updatedAtTicks = System.DateTime.UtcNow.Ticks,
                 installId = InstallId
             };
@@ -92,6 +95,10 @@ namespace FarmQuest.Core.Save
                 ? System.Guid.NewGuid().ToString("N")
                 : data.installId;
             data.installId = InstallId;
+            // Upgrades/world first: other systems read them while restoring.
+            ServiceLocator.Get<FarmUpgradeService>().RestoreState(data.farmUpgrades);
+            ServiceLocator.Get<WorldProgressionService>().RestoreState(data.world);
+            ServiceLocator.Get<Systems.Ads.RewardedAdService>().RestoreState(data.ads);
             ServiceLocator.Get<FarmService>().RestoreState(data.farm);
             ServiceLocator.Get<InventoryService>().RestoreState(data.inventory);
             ServiceLocator.Get<EconomyService>().RestoreState(data.economy);

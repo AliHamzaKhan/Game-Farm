@@ -10,7 +10,10 @@ namespace FarmQuest.Systems.Missions
         ReachLevel,        // reach level N
         UnlockLand,        // unlock N regions (total)
         CompleteMissions,  // claim N mission rewards (lifetime)
-        CompleteStoryChapter // finish story chapter N
+        CompleteStoryChapter, // finish story chapter N
+        CompleteCities,    // complete N cities on the world tour
+        CompleteCountries, // complete N countries on the world tour
+        CareActions        // spray/prune/feed nutrients N times
     }
 
     /// <summary>Data-driven achievement (§29). One-time milestones, never random.</summary>

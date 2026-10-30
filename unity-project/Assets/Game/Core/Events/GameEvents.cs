@@ -58,6 +58,14 @@ namespace FarmQuest.Core.Services
         public static event Action WeatherChanged;
         public static event Action SeasonChanged;
 
+        // ---- World tour: countries, cities, care, sales ----
+        public static event Action WorldChanged;                    // city/objective progress changed
+        public static event Action<int, string> CityCompleted;      // global city index, city name
+        public static event Action<string> CountryCompleted;       // country name
+        public static event Action<string, int, long> SaleCompleted; // itemId, quantity, coins earned
+        public static event Action<string> CropCared;              // care action id (spray, prune, ...)
+        public static event Action FarmUpgradesChanged;
+
         public static void RaiseCoinsChanged(long coins) => CoinsChanged?.Invoke(coins);
         public static void RaiseLevelChanged(int level, int xpIntoLevel) => LevelChanged?.Invoke(level, xpIntoLevel);
         public static void RaiseLevelUp(int newLevel) => LevelUp?.Invoke(newLevel);
@@ -95,6 +103,12 @@ namespace FarmQuest.Core.Services
         public static void RaiseBankChanged() => BankChanged?.Invoke();
         public static void RaiseWeatherChanged() => WeatherChanged?.Invoke();
         public static void RaiseSeasonChanged() => SeasonChanged?.Invoke();
+        public static void RaiseWorldChanged() => WorldChanged?.Invoke();
+        public static void RaiseCityCompleted(int cityIndex, string cityName) => CityCompleted?.Invoke(cityIndex, cityName);
+        public static void RaiseCountryCompleted(string countryName) => CountryCompleted?.Invoke(countryName);
+        public static void RaiseSaleCompleted(string itemId, int quantity, long coins) => SaleCompleted?.Invoke(itemId, quantity, coins);
+        public static void RaiseCropCared(string action) => CropCared?.Invoke(action);
+        public static void RaiseFarmUpgradesChanged() => FarmUpgradesChanged?.Invoke();
 
         public static void Reset()
         {
@@ -135,6 +149,12 @@ namespace FarmQuest.Core.Services
             BankChanged = null;
             WeatherChanged = null;
             SeasonChanged = null;
+            WorldChanged = null;
+            CityCompleted = null;
+            CountryCompleted = null;
+            SaleCompleted = null;
+            CropCared = null;
+            FarmUpgradesChanged = null;
         }
     }
 }

@@ -109,7 +109,7 @@ namespace FarmQuest.Editor
                 wheel.transform.localPosition = new Vector3(x, r, z);
                 wheel.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
                 wheel.transform.localScale = new Vector3(r * 2f, 0.4f, r * 2f);
-                wheel.GetComponent<Renderer>().material.color = dark;
+                Paint(wheel, dark);
             }
             var col = go.AddComponent<BoxCollider>();
             col.size = new Vector3(3.2f, 3f, 2.4f);
@@ -142,14 +142,14 @@ namespace FarmQuest.Editor
                 body.transform.SetParent(go.transform, false);
                 body.transform.localPosition = Vector3.up * 0.9f;
                 body.transform.localScale = new Vector3(0.9f, 1.1f, 0.9f);
-                body.GetComponent<Renderer>().material.color = color;
+                Paint(body, color);
                 // Head.
                 var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 head.name = "Head";
                 head.transform.SetParent(go.transform, false);
                 head.transform.localPosition = new Vector3(0, 2f, 0);
                 head.transform.localScale = Vector3.one * 0.55f;
-                head.GetComponent<Renderer>().material.color = new Color(0.95f, 0.8f, 0.65f);
+                Paint(head, new Color(0.95f, 0.8f, 0.65f));
             }
         }
 
@@ -180,7 +180,7 @@ namespace FarmQuest.Editor
             hay.transform.SetParent(go.transform, false);
             hay.transform.localPosition = new Vector3(3.5f, 0.6f, 3.5f);
             hay.transform.localScale = new Vector3(1.6f, 1.2f, 1.6f);
-            hay.GetComponent<Renderer>().material.color = new Color(0.85f, 0.7f, 0.35f);
+            Paint(hay, new Color(0.85f, 0.7f, 0.35f));
         }
 
         // ---------------- orchard ----------------
@@ -215,13 +215,13 @@ namespace FarmQuest.Editor
             body.transform.localPosition = Vector3.up * 0.45f;
             body.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             body.transform.localScale = new Vector3(0.55f, 0.9f, 0.55f);
-            body.GetComponent<Renderer>().material.color = new Color(0.6f, 0.42f, 0.25f);
+            Paint(body, new Color(0.6f, 0.42f, 0.25f));
             var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             head.name = "Head";
             head.transform.SetParent(go.transform, false);
             head.transform.localPosition = new Vector3(0, 0.75f, 0.55f);
             head.transform.localScale = Vector3.one * 0.45f;
-            head.GetComponent<Renderer>().material.color = new Color(0.6f, 0.42f, 0.25f);
+            Paint(head, new Color(0.6f, 0.42f, 0.25f));
             // Ears.
             foreach (float x in new[] { -0.18f, 0.18f })
             {
@@ -230,7 +230,7 @@ namespace FarmQuest.Editor
                 ear.transform.SetParent(go.transform, false);
                 ear.transform.localPosition = new Vector3(x, 1f, 0.5f);
                 ear.transform.localScale = new Vector3(0.16f, 0.28f, 0.12f);
-                ear.GetComponent<Renderer>().material.color = new Color(0.45f, 0.3f, 0.18f);
+                Paint(ear, new Color(0.45f, 0.3f, 0.18f));
             }
         }
 
@@ -254,14 +254,14 @@ namespace FarmQuest.Editor
             water.transform.SetParent(go.transform, false);
             water.transform.localPosition = new Vector3(0, 0.05f, 0);
             water.transform.localScale = new Vector3(8f, 0.2f, 8f);
-            water.GetComponent<Renderer>().material.color = new Color(0.3f, 0.55f, 0.75f);
+            Paint(water, new Color(0.3f, 0.55f, 0.75f));
             // Sandy rim.
             var rim = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             rim.name = "Rim";
             rim.transform.SetParent(go.transform, false);
             rim.transform.localPosition = new Vector3(0, 0.02f, 0);
             rim.transform.localScale = new Vector3(9.5f, 0.1f, 9.5f);
-            rim.GetComponent<Renderer>().material.color = new Color(0.8f, 0.72f, 0.55f);
+            Paint(rim, new Color(0.8f, 0.72f, 0.55f));
             // Dock.
             AddBox(go, "Dock", new Vector3(1.6f, 0.25f, 4f), new Vector3(0, 0.25f, -5f),
                 new Color(0.55f, 0.4f, 0.25f));
@@ -278,6 +278,30 @@ namespace FarmQuest.Editor
 
         // ---------------- helpers ----------------
 
+        private const string MaterialFolder = "Assets/Game/World/Generated/Materials";
+
+        /// <summary>
+        /// Colors a primitive with a shared material asset (one per color).
+        /// Using renderer.material in edit mode leaks instances, and prefabs
+        /// can't keep references to materials that aren't saved assets.
+        /// </summary>
+        private static void Paint(GameObject go, Color color)
+        {
+            var renderer = go.GetComponent<Renderer>();
+            renderer.sharedMaterial = ColorMaterial(renderer.sharedMaterial, color);
+        }
+
+        private static Material ColorMaterial(Material template, Color color)
+        {
+            string path = $"{MaterialFolder}/Color_{ColorUtility.ToHtmlStringRGBA(color)}.mat";
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mat != null) return mat;
+            EnsureFolder(MaterialFolder);
+            mat = new Material(template) { color = color };
+            AssetDatabase.CreateAsset(mat, path);
+            return mat;
+        }
+
         private static void AddBox(GameObject parent, string name, Vector3 size, Vector3 localPos, Color color)
         {
             var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -285,7 +309,7 @@ namespace FarmQuest.Editor
             box.transform.SetParent(parent.transform, false);
             box.transform.localPosition = localPos;
             box.transform.localScale = size;
-            box.GetComponent<Renderer>().material.color = color;
+            Paint(box, color);
         }
 
         private static GameObject SavePrefab(GameObject go, string path)

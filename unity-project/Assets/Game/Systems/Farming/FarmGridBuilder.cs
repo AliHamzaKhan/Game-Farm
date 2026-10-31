@@ -27,7 +27,8 @@ namespace FarmQuest.Systems.Farming
                 go.name = $"Tile_{tile.GridPosition.x}_{tile.GridPosition.y}";
                 go.transform.SetParent(transform, false);
                 go.transform.position = farm.GridToWorld(tile.GridPosition);
-                go.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+                // +90 on X turns the quad's visible face up (-90 faced it down: invisible from above, and raycasts missed).
+                go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
                 go.transform.localScale = new Vector3(size, size, 1f);
                 go.layer = tileLayer;
 

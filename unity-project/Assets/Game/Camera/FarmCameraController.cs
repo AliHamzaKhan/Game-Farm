@@ -20,6 +20,8 @@ namespace FarmQuest.Camera
         public float panSpeed = 1f;
         public float zoomSpeed = 4f;
         public float smoothTime = 0.15f;
+        [Tooltip("How far back along the view direction the camera sits while following (orthographic, so this only affects clipping).")]
+        public float followDistance = 40f;
         public Rect worldBounds = new Rect(-20f, -20f, 40f, 40f);
 
         private UnityEngine.Camera _cam;
@@ -48,8 +50,14 @@ namespace FarmQuest.Camera
             _input.Dragged += OnDragged;
             _input.Pinched += OnPinched;
             if (followTarget != null)
-                _followOffset = transform.position - followTarget.position;
+            {
+                _followOffset = FollowOffset();
+                transform.position = _targetPos = followTarget.position + _followOffset;
+            }
         }
+
+        // Back off along the view direction so the target sits in the centre of the screen.
+        private Vector3 FollowOffset() => -transform.forward * followDistance;
 
         private void OnDestroy()
         {
@@ -84,8 +92,11 @@ namespace FarmQuest.Camera
 
             if (followTarget != null)
             {
-                _targetPos = followTarget.position + _followOffset;
-                ClampTarget();
+                // Clamp the followed point, not the camera (the camera sits off to one side).
+                Vector3 focus = followTarget.position;
+                focus.x = Mathf.Clamp(focus.x, worldBounds.xMin, worldBounds.xMax);
+                focus.z = Mathf.Clamp(focus.z, worldBounds.yMin, worldBounds.yMax);
+                _targetPos = focus + _followOffset;
             }
 
             transform.position = Vector3.SmoothDamp(transform.position, _targetPos, ref _velocity, smoothTime);
@@ -109,7 +120,7 @@ namespace FarmQuest.Camera
         {
             followTarget = target;
             if (target != null)
-                _followOffset = transform.position - target.position;
+                _followOffset = FollowOffset();
         }
     }
 }

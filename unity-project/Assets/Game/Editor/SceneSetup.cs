@@ -94,6 +94,7 @@ namespace FarmQuest.Editor
             var camGo = GameObject.Find("Main Camera");
             var cam = camGo.GetComponent<UnityEngine.Camera>();
             camGo.transform.position = new Vector3(0f, 18f, -10f);
+            cam.orthographicSize = 12f; // wide enough to see the farmer and nearby tiles
             var camCtrl = camGo.AddComponent<Camera.FarmCameraController>();
 
             // Input + audio.
@@ -131,8 +132,13 @@ namespace FarmQuest.Editor
             canvasGo.AddComponent<GraphicRaycaster>();
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
 
-            var hudGo = new GameObject("Hud");
+            // Full-screen RectTransform so HUD texts anchor to the screen's top edge
+            // (a plain Transform parent left them centred on the canvas).
+            var hudGo = new GameObject("Hud", typeof(RectTransform));
             hudGo.transform.SetParent(canvasGo.transform, false);
+            var hudRt = (RectTransform)hudGo.transform;
+            hudRt.anchorMin = Vector2.zero; hudRt.anchorMax = Vector2.one;
+            hudRt.offsetMin = hudRt.offsetMax = Vector2.zero;
             var hud = hudGo.AddComponent<HudController>();
             hud.coinsText = MakeText(hudGo.transform, "Coins", "🪙 100", 44, new Vector2(-20, -30), TextAnchor.UpperRight);
             hud.levelText = MakeText(hudGo.transform, "Level", "Lv 1", 40, new Vector2(20, -30), TextAnchor.UpperLeft);

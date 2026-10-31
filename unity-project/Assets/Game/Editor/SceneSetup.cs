@@ -262,14 +262,14 @@ namespace FarmQuest.Editor
             return button;
         }
 
+        /// <summary>Creates the folder and any missing parents (CreateFolder only makes one level).</summary>
         private static void EnsureFolder(string path)
         {
-            if (!AssetDatabase.IsValidFolder(path))
-            {
-                string parent = System.IO.Path.GetDirectoryName(path).Replace('\\', '/');
-                string name = System.IO.Path.GetFileName(path);
-                AssetDatabase.CreateFolder(parent, name);
-            }
+            if (AssetDatabase.IsValidFolder(path)) return;
+            int slash = path.LastIndexOf('/');
+            string parent = path.Substring(0, slash);
+            EnsureFolder(parent);
+            AssetDatabase.CreateFolder(parent, path.Substring(slash + 1));
         }
     }
 }

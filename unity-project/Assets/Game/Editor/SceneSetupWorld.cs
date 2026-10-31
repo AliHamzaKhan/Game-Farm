@@ -319,13 +319,14 @@ namespace FarmQuest.Editor
             return prefab;
         }
 
+        /// <summary>Creates the folder and any missing parents (CreateFolder only makes one level).</summary>
         private static void EnsureFolder(string path)
         {
-            if (!AssetDatabase.IsValidFolder(path))
-            {
-                int slash = path.LastIndexOf('/');
-                AssetDatabase.CreateFolder(path.Substring(0, slash), path.Substring(slash + 1));
-            }
+            if (AssetDatabase.IsValidFolder(path)) return;
+            int slash = path.LastIndexOf('/');
+            string parent = path.Substring(0, slash);
+            EnsureFolder(parent);
+            AssetDatabase.CreateFolder(parent, path.Substring(slash + 1));
         }
     }
 }
